@@ -6,7 +6,7 @@ from pathlib import Path
 
 import click
 
-from . import config, research, sync
+from . import config, research, store, sync
 from .calendar_app import Calendar, MacCalendar
 from .display import dim, heading, percent_cell, table
 from .load import DataError, load
@@ -46,23 +46,68 @@ def sync_cmd(dry_run: bool) -> None:
     if not dry_run and (problem := cal.check_ready()):
         click.secho(problem, fg="yellow")
         raise SystemExit(1)
+    todo = sync.plan(cat, store.load(state_path), today)
+    count = len(todo.upserts) + len(todo.removals)
+    click.echo()
+    if count and not dry_run:
+        click.echo(heading(config.CALENDAR_NAME + " calendar") + dim(f"  writing {plural(count, 'change')}…"))
     result = sync.run(cat, cal, state_path, today, dry_run)
-    if dry_run:
-        click.echo()
-        click.echo(heading(f"Would write {result.written}, remove {result.removed}") + dim("  (dry run)"))
-        rows = [["write", f"{p.day:%a %d %b %Y}", p.title, percent_cell(p.percent, p.confirmed)]
-                for p in result.plan.upserts]
-        rows += [[("remove", {"fg": "yellow"}), "", key, ""] for key in result.plan.removals]
-        if rows:
-            click.echo(table(rows, ["", "Date", "Event", "Sure"]))
-        click.echo()
-        return
-    click.echo(click.style("Bonfire calendar: ", bold=True)
-               + f"{result.written} written, {result.removed} removed")
-    for key, why in result.failed:
-        click.secho(f"  {key}: {why}", fg="yellow")
+    sync_report(result, today, dry_run)
     if result.failed:
-        click.secho("  These will be tried again on the next sync.", dim=True)
+        raise SystemExit(1)
+
+
+ACTIONS = {"add": ("+ added", "green"), "move": ("→ moved", "cyan"), "update": ("~ updated", "blue"),
+           "remove": ("− removed", "yellow")}
+DRY = {"add": "+ add", "move": "→ move", "update": "~ update", "remove": "− remove"}
+
+
+def plural(n: int, word: str) -> str:
+    return f"{n} {word}" + ("" if n == 1 else "s")
+
+
+def sync_report(result: sync.SyncResult, today: date, dry_run: bool) -> None:
+    """Each change as a row, then a one-line tally, what the calendar holds, and what's next."""
+    name = config.CALENDAR_NAME + " calendar"
+    if not result.items:
+        click.echo(heading(name) + "  is up to date: " + plural(len(result.events), "event") + ", nothing to change.")
+    else:
+        if dry_run:
+            click.echo(heading(name) + f"  would make {plural(len(result.items), 'change')}" + dim("  (dry run)"))
+        click.echo()
+        rows = []
+        for i in result.items:
+            label, colour = (DRY[i.action], "white") if dry_run else ACTIONS[i.action]
+            if i.error:
+                label, colour = "✗ failed", "red"
+            rows.append([(label, {"fg": colour, "bold": bool(i.error)}), f"{i.day:%a %d %b %Y}", i.title,
+                         percent_cell(i.percent, i.confirmed) if i.percent is not None else "",
+                         (i.error, {"fg": "yellow"}) if i.error else (i.note, {"dim": True})])
+        click.echo(table(rows, ["Change", "Date", "Event", "Sure", ""]))
+        click.echo()
+        tally = [(sum(1 for i in result.items if i.action == a and not i.error), word)
+                 for a, word in (("add", "added"), ("move", "moved"), ("update", "updated"),
+                                 ("remove", "removed"))]
+        tally += [(len(result.failed), "failed"), (result.unchanged, "unchanged")]
+        colours = {"added": "green", "moved": "cyan", "updated": "blue", "removed": "yellow", "failed": "red"}
+        parts = [click.style(f"{n} {w}", fg=colours.get(w), bold=True) if n and w in colours else dim(f"{n} {w}")
+                 for n, w in tally]
+        click.echo("  " + dim(" · ").join(parts) + (dim("  (nothing written)") if dry_run else ""))
+    if result.events:
+        first, last = result.events[0], result.events[-1]
+        verb = "would hold" if dry_run and result.items else "holds"
+        missing = sum(1 for i in result.items if i.error and i.action == "add")
+        held = f"{len(result.events) - missing} of {len(result.events)} events" if missing else \
+            plural(len(result.events), "event")
+        click.echo(dim(f"  The calendar {verb} {held}, "
+                       f"{first.day:%a %d %b %Y} to {last.day:%a %d %b %Y}."))
+        days = (first.day - today).days
+        when = "today" if days == 0 else "tomorrow" if days == 1 else f"in {days} days"
+        click.echo("  " + click.style("Next: ", bold=True) + f"{first.day:%a %d %b}  {first.title}  "
+                   + dim(when))
+    if result.failed:
+        click.secho("  Failed writes are tried again on the next sync.", fg="yellow")
+    click.echo()
 
 
 def default_year(cat: Catalogue, today: date) -> int:

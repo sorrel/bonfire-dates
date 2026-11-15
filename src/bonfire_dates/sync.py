@@ -28,11 +28,27 @@ class SyncPlan:
 
 
 @dataclass
+class Item:
+    """One change a sync makes (or, in a dry run, would make), for the report."""
+    action: str  # "add", "move", "update" or "remove"
+    key: str
+    day: date
+    title: str
+    percent: int | None = None
+    confirmed: bool = False
+    note: str = ""  # what changed: "was Sat 23 Oct", "was 56%"
+    error: str | None = None
+
+
+@dataclass
 class SyncResult:
     written: int = 0
     removed: int = 0
     failed: list[tuple[str, str]] = field(default_factory=list)
     plan: SyncPlan = field(default_factory=SyncPlan)
+    items: list[Item] = field(default_factory=list)
+    unchanged: int = 0
+    events: list[Prediction] = field(default_factory=list)  # every event the calendar should now hold
 
 
 def wanted(cat: Catalogue, today: date) -> dict[str, Prediction]:
@@ -48,37 +64,79 @@ def plan(cat: Catalogue, state: store.State, today: date) -> SyncPlan:
     return SyncPlan(upserts, removals)
 
 
+def _upsert_item(p: Prediction, before: dict | None) -> Item:
+    item = Item("add", p.key, p.day, p.title, p.percent, p.confirmed)
+    if before is None:
+        return item
+    old_day = date.fromisoformat(before["day"])
+    if old_day != p.day:
+        item.action, item.note = "move", f"was {old_day:%a %d %b}" + (
+            f" {old_day.year}" if old_day.year != p.day.year else "")
+        return item
+    item.action = "update"
+    changes = []
+    if before.get("percent") is not None and before["percent"] != p.percent:
+        changes.append(f"was {before['percent']}%")
+    if before.get("title") and before["title"].rstrip("?") != p.title.rstrip("?"):  # "?" follows the percent
+        changes.append(f"was “{before['title']}”")
+    item.note = ", ".join(changes) or "details changed"
+    return item
+
+
+def _removal_item(cat: Catalogue, key: str, before: dict) -> Item:
+    sid = key.rsplit(":", 1)[0]
+    title = before.get("title") or (f"{cat.societies[sid].name}" if sid in cat.societies else key)
+    return Item("remove", key, date.fromisoformat(before["day"]), title)
+
+
+def _record(p: Prediction, uid: str) -> dict:
+    return {"uid": uid, "day": p.day.isoformat(), "hash": fingerprint(p), "title": p.title, "percent": p.percent}
+
+
 def run(cat: Catalogue, cal: Calendar, state_path: Path, today: date, dry_run: bool) -> SyncResult:
     state = store.load(state_path)
+    want = wanted(cat, today)
     todo = plan(cat, state, today)
-    if dry_run:
-        return SyncResult(len(todo.upserts), len(todo.removals), [], todo)
     # Pair every change with its key, so no outcome is matched back by uid.
     pairs = [(p.key, Change(state.events.get(p.key, {}).get("uid"), p)) for p in todo.upserts]
-    held = {state.events[k]["uid"] for k in wanted(cat, today) if k in state.events}
-    dropped = False
+    items = [_upsert_item(p, state.events.get(p.key)) for p in todo.upserts]
+    held = {state.events[k]["uid"] for k in want if k in state.events}
+    stale: list[str] = []
     removing: set[str] = set()
     for k in todo.removals:
         uid = state.events[k]["uid"]
         if uid in held or uid in removing:
-            del state.events[k]  # a stale entry for an event that stays, or is already being removed
-            dropped = True
+            stale.append(k)  # a stale entry for an event that stays, or is already being removed
         else:
             removing.add(uid)
             pairs.append((k, Change(uid)))
-    result = SyncResult(plan=todo)
+            items.append(_removal_item(cat, k, state.events[k]))
+    result = SyncResult(plan=todo, items=items, unchanged=len(want) - len(todo.upserts),
+                        events=sorted(want.values(), key=lambda p: (p.day, p.title)))
+    if dry_run:
+        result.written, result.removed = len(todo.upserts), len(todo.removals)
+        return result
+    for k in stale:
+        del state.events[k]
+    # Older state lacks titles and percentages; fill them in for events that stay as they are.
+    filled = False
+    for k, p in want.items():
+        e = state.events.get(k)
+        if e and e.get("hash") == fingerprint(p) and "percent" not in e:
+            state.events[k] = _record(p, e["uid"])
+            filled = True
     changes = [c for _, c in pairs]
-    for (key, change), outcome in zip(pairs, cal.apply(changes), strict=True):
+    for (key, change), outcome, item in zip(pairs, cal.apply(changes), items, strict=True):
         if isinstance(outcome, CalendarError):
             result.failed.append((key, str(outcome)))
+            item.error = str(outcome)
         elif change.prediction:
-            p = change.prediction
-            state.events[key] = {"uid": outcome, "day": p.day.isoformat(), "hash": fingerprint(p)}
+            state.events[key] = _record(change.prediction, outcome)
             result.written += 1
         else:
             for k in [k for k, e in state.events.items() if e["uid"] == change.uid and k in todo.removals]:
                 del state.events[k]
             result.removed += 1
-    if changes or dropped:
+    if changes or stale or filled:
         store.save(state, state_path, today)
     return result

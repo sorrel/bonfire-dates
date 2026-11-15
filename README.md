@@ -30,7 +30,7 @@ percentage, the rule and the evidence behind it.
 | Command | What it does |
 |---|---|
 | `bonfire predict [YEAR] [-v] [--json]` | The season month by month, with how sure each date is |
-| `bonfire sync [--dry-run]` | Bring the Bonfire calendar in line (the rest of this year and next) |
+| `bonfire sync [--dry-run]` | Bring the Bonfire calendar in line (the rest of this year and next): lists each event added, moved (with its old date), updated (with its old percentage) or removed, then a tally, what the calendar holds and the next event. Exits 1 if any write failed; those retry next time |
 | `bonfire todo [YEAR]` | What's still only predicted, with each society's links |
 | `bonfire confirm ID DATE [--source …] [--url …]` | Record a date once it's known |
 | `bonfire evidence ID FILE` | Keep a poster or screenshot locally (never published) |
