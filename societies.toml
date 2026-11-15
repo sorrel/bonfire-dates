@@ -1,0 +1,457 @@
+# Sussex bonfire societies, their rules and the dates known so far.
+#
+# One table per society or event. Public facts only. A source says how a date
+# is known, never by whom: verified (known to be right; kept privately in
+# data/known.toml, never here) > society (its own site,
+# poster or page) > guides (two guides that agree) > guide > wiki.
+# Rules: { month, weekday, nth } (nth = -1 for last); { month, day, sunday };
+# or { anchor, weekday?, direction?, weeks?, days? } where anchor is "nov5",
+# "remembrance-sunday" or another society's id. See the README.
+
+[defaults]
+badge_confidence = 10  # few badge nights are fixed far ahead
+
+[chiddingly-badge]
+name = "Chiddingly badge night"
+kind = "badge"
+status = "active"
+place = "Gun Brewery, Gun Hill, East Sussex"
+of = "chiddingly"
+start = "18:00"
+rule = { month = 8, weekday = "sat", nth = 3 }
+known = [
+  { date = 2025-08-16, source = "guide", url = "https://www.gunbrewery.co.uk/taproom-events/2025/8/16/the-chiddingly-parish-bonfire-society-badge-night", checked = 2026-11-15 },
+]
+
+[uckfield]
+name = "Uckfield"
+kind = "night"
+status = "active"
+place = "Uckfield, East Sussex"
+links = { website = "https://uckfieldcarnival.co.uk" }
+rule = { month = 9, weekday = "sat", nth = 1 }
+note = "Uckfield Bonfire & Carnival Society: the season's opening night"
+
+[crowborough]
+name = "Crowborough"
+kind = "night"
+status = "active"
+place = "Crowborough, East Sussex"
+rule = { month = 9, weekday = "sat", nth = 2 }
+note = "Crowborough Bonfire & Carnival Society"
+
+[fletching]
+name = "Fletching"
+kind = "night"
+status = "active"
+place = "Fletching, East Sussex"
+rule = { month = 9, weekday = "sat", nth = 2, guess = true }
+known = [
+  { date = 2026-09-12, source = "guide", url = "https://www.thebestof.co.uk/local/eastbourne/pevensey/community-hub/blog/view/east-sussex-bonfire-processions--dates-and-locations/", checked = 2026-11-15, note = "its website may give Sunday 13 September" },
+]
+
+[mayfield]
+name = "Mayfield"
+kind = "night"
+status = "active"
+place = "Mayfield, East Sussex"
+rule = { month = 9, weekday = "sat", nth = 3 }
+note = "Wikipedia's 'nearest Saturday to 24 September' does not fit 2026"
+
+[buxted]
+name = "Buxted"
+kind = "night"
+status = "active"
+place = "Buxted, East Sussex"
+links = { website = "https://buxtedbonfiresociety.co.uk" }
+rule = { month = 9, weekday = "sat", nth = -1, source = "society", url = "https://buxtedbonfiresociety.co.uk", checked = 2026-11-15, note = "always the last Saturday of September" }
+known = [
+  { date = 2026-09-26, source = "guide", url = "https://www.thebestof.co.uk/local/eastbourne/pevensey/community-hub/blog/view/east-sussex-bonfire-processions--dates-and-locations/", checked = 2026-11-15 },
+]
+
+[burgess-hill]
+name = "Burgess Hill"
+kind = "night"
+status = "active"
+place = "Burgess Hill, West Sussex"
+rule = { month = 9, weekday = "sat", nth = -1 }
+
+[eastbourne]
+name = "Eastbourne"
+kind = "night"
+status = "active"
+place = "Eastbourne, East Sussex"
+links = { website = "https://www.eastbournebonfiresociety.com" }
+rule = { month = 10, weekday = "sat", nth = 1 }
+
+[northiam]
+name = "Northiam"
+kind = "night"
+status = "active"
+place = "Northiam, East Sussex"
+links = { website = "https://www.northiambonfiresociety.org.uk" }
+rule = { month = 10, weekday = "sat", nth = 1, guess = true }
+known = [
+  { date = 2026-10-03, source = "society", url = "https://www.northiambonfiresociety.org.uk/other-sussex-bonfire-events", checked = 2026-11-15 },
+]
+
+[rotherfield]
+name = "Rotherfield & Mark Cross"
+kind = "night"
+status = "active"
+place = "Rotherfield, East Sussex"
+rule = { month = 10, weekday = "sat", nth = 1, guess = true }
+
+[lewes-fancy-dress]
+name = "Lewes bonfire fancy dress"
+kind = "other"
+status = "active"
+place = "Lewes Town Hall, Lewes"
+emoji = "🎭"
+rule = { month = 10, weekday = "fri", nth = 2 }
+
+[heathfield]
+name = "Heathfield & District"
+kind = "night"
+status = "active"
+place = "Heathfield, East Sussex"
+links = { website = "https://heathfieldbonfiresociety.co.uk" }
+rule = { month = 10, weekday = "sat", nth = 2 }
+
+[nevill-badge]
+name = "Nevill badge night"
+kind = "badge"
+status = "active"
+place = "Lewes, East Sussex"
+of = "nevill"
+rule = { month = 10, weekday = "sun", nth = 2, guess = true }
+known = [
+  { date = 2026-10-11, source = "society", url = "https://njbs.co.uk/page.asp?id=21", checked = 2026-11-15 },
+]
+
+[hastings]
+name = "Hastings Borough"
+kind = "night"
+status = "active"
+place = "Hastings, East Sussex"
+start = "17:30"
+links = { website = "https://www.hbbs.info" }
+rule = { month = 10, weekday = "sat", nth = 3 }
+note = "held in Hastings Week, which marks the Battle of Hastings"
+
+[hailsham]
+name = "Hailsham"
+kind = "night"
+status = "active"
+place = "Hailsham, East Sussex"
+rule = { month = 10, weekday = "sat", nth = 3, guess = true }
+known = [
+  { date = 2026-10-17, source = "guides", url = "https://www.thebestof.co.uk/local/eastbourne/pevensey/community-hub/blog/view/east-sussex-bonfire-processions--dates-and-locations/", checked = 2026-11-15 },
+]
+
+[seaford]
+name = "Seaford"
+kind = "night"
+status = "active"
+place = "Seaford, East Sussex"
+rule = { month = 10, weekday = "sat", nth = 3, guess = true }
+known = [
+  { date = 2026-10-17, source = "guide", checked = 2026-11-15 },
+]
+
+[east-grinstead]
+name = "East Grinstead"
+kind = "night"
+status = "active"
+place = "East Grinstead, West Sussex"
+rule = { month = 10, weekday = "sat", nth = 3, guess = true }
+known = [
+  { date = 2026-10-17, source = "guide", checked = 2026-11-15 },
+]
+
+[firle-badge]
+name = "Firle badge night"
+kind = "badge"
+status = "active"
+place = "The Ram Inn, Firle, East Sussex"
+of = "firle"
+start = "19:00"
+rate_on_evidence = true
+rule = { anchor = "firle", weekday = "wed", direction = "before" }
+known = [
+  { date = 2026-10-21, source = "society", url = "https://www.firlebonfire.co.uk", checked = 2026-11-15 },
+]
+
+[ninfield-badge]
+name = "Ninfield badge night"
+kind = "badge"
+status = "active"
+place = "Ninfield, East Sussex"
+of = "ninfield"
+rule = { anchor = "ninfield", weekday = "wed", direction = "before" }
+known = [
+  { date = 2026-10-21, source = "guide", url = "https://www.sussexexpress.co.uk/your-world/ninfield-and-hooe-village-voice-9217787", checked = 2026-11-15 },
+]
+
+[firle]
+name = "Firle"
+kind = "night"
+status = "active"
+place = "Firle, East Sussex"
+links = { website = "https://www.firlebonfire.co.uk" }
+rule = { anchor = "newick", weeks = -1 }
+note = "not 'the last Saturday of October': the two first differ in 2032"
+
+[littlehampton]
+name = "Littlehampton"
+kind = "night"
+status = "active"
+place = "Littlehampton, West Sussex"
+links = { website = "https://littlehamptonbonfiresociety.co.uk" }
+rule = { month = 10, weekday = "sat", nth = 4, guess = true }
+
+[ninfield]
+name = "Ninfield"
+kind = "night"
+status = "active"
+place = "Ninfield, East Sussex"
+rule = { month = 10, weekday = "sat", nth = 4, guess = true }
+known = [
+  { date = 2026-10-24, source = "guide", url = "https://www.northiambonfiresociety.org.uk/other-sussex-bonfire-events", checked = 2026-11-15 },
+]
+
+[nevill]
+name = "Nevill (Lewes)"
+kind = "night"
+status = "active"
+place = "Lewes, East Sussex"
+links = { website = "https://njbs.co.uk" }
+rule = { anchor = "nov5", weekday = "sat", direction = "before", weeks = -1, guess = true }
+note = "Nevill Juvenile Bonfire Society; its night is earlier than 5 November. One old guide says about two Saturdays before"
+
+[isfield]
+name = "Isfield & Little Horsted"
+kind = "night"
+status = "active"
+place = "Isfield, East Sussex"
+rule = { anchor = "newick", weekday = "fri", direction = "before" }
+
+[newick]
+name = "Newick"
+kind = "night"
+status = "active"
+place = "Newick, East Sussex"
+links = { website = "https://newickbonfire.com" }
+rule = { anchor = "nov5", weekday = "sat", direction = "before" }
+
+[ewhurst-staplecross]
+name = "Ewhurst & Staplecross"
+kind = "night"
+status = "active"
+place = "Staplecross, East Sussex"
+links = { website = "https://esbs.org.uk" }
+rule = { month = 10, weekday = "sat", nth = -1 }
+known = [
+  { date = 2026-10-31, source = "guides", url = "https://www.northiambonfiresociety.org.uk/other-sussex-bonfire-events", checked = 2026-11-15 },
+]
+
+[lewes-badge]
+name = "Lewes badge night"
+kind = "badge"
+status = "active"
+place = "Lewes, East Sussex"
+of = "lewes"
+rate_on_evidence = true
+rule = { anchor = "lewes", days = -1 }
+
+[lewes]
+name = "Lewes"
+kind = "night"
+status = "active"
+place = "Lewes, East Sussex"
+confidence = 99
+why = "fixed by tradition"
+rule = { month = 11, day = 5, sunday = "sat-before" }
+note = "Cliffe, Borough, Commercial Square, Southover, South Street and Waterloo; Nevill holds its own night"
+
+[battle]
+name = "Battle"
+kind = "night"
+status = "active"
+place = "Battle, East Sussex"
+rule = { anchor = "nov5", weekday = "sat", direction = "after" }
+note = "Battel Bonfire Boyes"
+
+[chailey]
+name = "Chailey"
+kind = "night"
+status = "active"
+place = "Chailey, East Sussex"
+rule = { anchor = "nov5", weekday = "sat", direction = "after", guess = true }
+known = [
+  { date = 2026-11-07, source = "guide", url = "https://www.thebestof.co.uk/local/eastbourne/pevensey/community-hub/blog/view/east-sussex-bonfire-processions--dates-and-locations/", checked = 2026-11-15 },
+]
+
+[hawkhurst]
+name = "Hawkhurst Gang"
+kind = "night"
+status = "active"
+place = "Hawkhurst, Kent"
+note = "a Friday in 2026; one website wrongly listed it as dissolved in 2024"
+
+[east-hoathly]
+name = "East Hoathly & Halland"
+kind = "night"
+status = "active"
+place = "East Hoathly, East Sussex"
+rule = { anchor = "remembrance-sunday", weekday = "sat", direction = "before", source = "wiki", url = "https://en.wikipedia.org/wiki/Sussex_Bonfire_Societies", checked = 2026-11-15, note = "the day before Remembrance Sunday" }
+
+[rye]
+name = "Rye & District"
+kind = "night"
+status = "active"
+place = "Rye, East Sussex"
+rule = { anchor = "battle", weeks = 1 }
+
+[south-heighton]
+name = "South Heighton"
+kind = "night"
+status = "active"
+place = "South Heighton, East Sussex"
+links = { website = "https://southheighton.org/bonfire-society-homepage" }
+rule = { month = 11, weekday = "sat", nth = 2, source = "society", url = "https://southheighton.org/bonfire-society-homepage", checked = 2026-11-15, note = "the second Saturday in November" }
+
+[glynde-membership]
+name = "Glynde, Beddingham & Firle membership night"
+kind = "badge"
+status = "active"
+place = "Glynde Social Club, Glynde"
+of = "glynde-parade"
+start = "19:00"
+rule = { anchor = "glynde-parade", weekday = "wed", direction = "before" }
+known = [
+  { date = 2026-11-11, source = "society", checked = 2026-11-15, note = "the parade's 2026 poster" },
+]
+
+[glynde-parade]
+name = "Glynde, Beddingham & Firle Memorial Parade"
+kind = "other"
+status = "active"
+place = "Glynde Social Club, Glynde"
+emoji = "🕯️"
+start = "19:30"
+rule = { anchor = "remembrance-sunday", weekday = "fri", direction = "after" }
+known = [
+  { date = 2024-11-15, source = "guide", url = "https://southheighton.org/wp-content/uploads/2024/10/AllCoachLists2024.pdf", checked = 2026-11-15, note = "a coach list, since taken down" },
+  { date = 2026-11-13, source = "society", checked = 2026-11-15, note = "the parade's 2026 poster" },
+]
+note = "torch-lit parade to remember the fallen; service 8pm, fireworks 9pm"
+
+[barcombe]
+name = "Barcombe"
+kind = "night"
+status = "active"
+place = "Barcombe, East Sussex"
+links = { website = "https://barcombebonfire.co.uk" }
+rule = { month = 11, weekday = "sat", nth = 3 }
+note = "'a week after Rye' fits 2025 and 2026 but not 2024; both rules give 20 November 2027"
+
+[robertsbridge]
+name = "Robertsbridge"
+kind = "night"
+status = "active"
+place = "Robertsbridge, East Sussex"
+rule = { month = 11, weekday = "sat", nth = 3, guess = true }
+known = [
+  { date = 2026-11-21, source = "guides", url = "https://www.visit1066country.com/whats-on/festivals/bonfires-and-fireworks", checked = 2026-11-15 },
+]
+
+[chiddingly]
+name = "Chiddingly"
+kind = "night"
+status = "active"
+place = "Chiddingly, East Sussex"
+links = { website = "https://www.chiddinglybonfire.co.uk" }
+rule = { month = 11, weekday = "sat", nth = 4, source = "wiki", url = "https://en.wikipedia.org/wiki/Sussex_Bonfire_Societies", checked = 2026-11-15 }
+
+[bexhill]
+name = "Bexhill"
+kind = "night"
+status = "unknown"
+place = "Bexhill-on-Sea, East Sussex"
+
+[cowbeech]
+name = "Cowbeech"
+kind = "night"
+status = "unknown"
+place = "Cowbeech, East Sussex"
+
+[edenbridge]
+name = "Edenbridge"
+kind = "night"
+status = "unknown"
+place = "Edenbridge, Kent"
+
+[icklesham]
+name = "Icklesham (Robin Hood)"
+kind = "night"
+status = "unknown"
+place = "Icklesham, East Sussex"
+
+[lindfield]
+name = "Lindfield"
+kind = "night"
+status = "unknown"
+links = { website = "https://lindfieldbonfiresociety.co.uk" }
+place = "Lindfield, West Sussex"
+
+[maresfield]
+name = "Maresfield"
+kind = "night"
+status = "unknown"
+place = "Maresfield, East Sussex"
+
+[meeching]
+name = "Meeching"
+kind = "night"
+status = "unknown"
+place = "Newhaven, East Sussex"
+
+[shoreham]
+name = "Shoreham"
+kind = "night"
+status = "unknown"
+place = "Shoreham-by-Sea, West Sussex"
+
+[vines-cross]
+name = "Vines Cross"
+kind = "night"
+status = "unknown"
+place = "Vines Cross, East Sussex"
+
+[whatlington]
+name = "Whatlington Renegades"
+kind = "night"
+status = "unknown"
+place = "Whatlington, East Sussex"
+
+[worthing]
+name = "Worthing"
+kind = "night"
+status = "unknown"
+place = "Worthing, West Sussex"
+
+[cuckfield]
+name = "Cuckfield"
+kind = "night"
+status = "unknown"
+place = "Cuckfield, West Sussex"
+note = "a ticketed fireworks display, not a society night"
+
+[buxted-badge]
+name = "Buxted badge night"
+kind = "badge"
+status = "unknown"
+place = "Buxted, East Sussex"
+of = "buxted"
+note = "2026 listings conflict: Friday 17 April or Friday 22 May"

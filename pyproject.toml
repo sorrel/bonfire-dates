@@ -1,0 +1,26 @@
+[project]
+name = "bonfire-dates"
+version = "0.1.0"
+description = "Predicted Sussex bonfire society nights, with confidence ratings, in their own calendar"
+requires-python = ">=3.15"
+license = "MIT"
+license-files = ["LICENSE"]
+# Standard library only at runtime, apart from Click for the CLI.
+dependencies = ["click>=8.0.0"]
+
+[project.scripts]
+bonfire = "bonfire_dates.cli:cli"
+
+[dependency-groups]
+dev = ["pytest>=8.0"]
+
+[tool.pytest.ini_options]
+pythonpath = ["src", "."]
+testpaths = ["tests"]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/bonfire_dates"]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"

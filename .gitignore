@@ -1,0 +1,45 @@
+# --- Local state and evidence: never commit (machine-local, may hold personal details) ---
+data/
+*.db
+*.sqlite
+*.sqlite3
+snapshots/
+*.log
+
+# --- Secrets / environment ---
+.env
+.env.*
+# ...but the template carries no real value and must stay tracked.
+!.env.example
+*.pem
+*.key
+
+# --- Python ---
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+.eggs/
+*.egg-info/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+
+# --- Editor / OS cruft (may embed usernames or machine names) ---
+.DS_Store
+.idea/
+.vscode/
+*.swp
+*~
+
+# --- Anything explicitly marked local/private ---
+*.local
+local/
+scratch/
+
+# --- Plan execution workspace ---
+.superpowers/
+
+# Stray temp folders from ad-hoc runs
+/tmp*/
