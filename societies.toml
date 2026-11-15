@@ -374,12 +374,6 @@ place = "Chiddingly, East Sussex"
 links = { website = "https://www.chiddinglybonfire.co.uk" }
 rule = { month = 11, weekday = "sat", nth = 4, source = "wiki", url = "https://en.wikipedia.org/wiki/Sussex_Bonfire_Societies", checked = 2026-11-15 }
 
-[bexhill]
-name = "Bexhill"
-kind = "night"
-status = "unknown"
-place = "Bexhill-on-Sea, East Sussex"
-
 [cowbeech]
 name = "Cowbeech"
 kind = "night"

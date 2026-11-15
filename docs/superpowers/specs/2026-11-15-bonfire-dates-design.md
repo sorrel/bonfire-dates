@@ -305,7 +305,7 @@ misses one recorded year, but both give 20 Nov in 2027.
 The data should keep one rule and record the other in a note.
 
 **Listed with status `unknown` (no events until a date is recorded):**
-Bexhill, Cowbeech, Edenbridge (Kent), Icklesham (Robin Hood), Lindfield,
+Cowbeech, Edenbridge (Kent), Icklesham (Robin Hood), Lindfield,
 Maresfield, Meeching (Newhaven), Shoreham, Vines Cross, Whatlington Renegades,
 Worthing, Cuckfield (fireworks display), and Buxted's badge night (spring 2026
 dates conflict: Fri 17 Apr or Fri 22 May).
