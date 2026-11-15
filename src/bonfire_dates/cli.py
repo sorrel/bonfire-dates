@@ -8,10 +8,11 @@ import click
 
 from . import config, research, store, sync
 from .calendar_app import Calendar, MacCalendar
+from .helpfmt import Group
 from .display import dim, heading, percent_cell, table
 from .load import DataError, load
 from .model import SOURCES, Catalogue, Known
-from .predict import predict_one, prediction_year, predictions
+from .predict import EMOJI, predict_one, prediction_year, predictions
 from .rules import describe, rule_date
 
 
@@ -30,15 +31,22 @@ def catalogue() -> Catalogue:
         raise SystemExit(1) from None
 
 
-@click.group()
+@click.group(cls=Group, context_settings={"help_option_names": ["-h", "--help"], "max_content_width": 100})
 def cli() -> None:
-    """Predicted Sussex bonfire nights, in their own calendar."""
+    """Predicted Sussex bonfire nights, each with how sure it is, in their own
+    "Bonfire" calendar."""
 
 
-@cli.command("sync")
+@cli.command("sync", examples=[("bonfire sync --dry-run", "see every change first; nothing is written"),
+                                ("bonfire sync", "write the changes")])
 @click.option("--dry-run", is_flag=True, help="Show what would change, and change nothing.")
 def sync_cmd(dry_run: bool) -> None:
-    """Bring the Bonfire calendar in line with the predictions."""
+    """Bring the Bonfire calendar in line with the predictions.
+
+    Covers the rest of this year and all of next; once Lewes night has passed,
+    this year keeps only known dates. Lists each event added, moved, updated or
+    removed. Past events are never touched, and only the Bonfire calendar is
+    ever changed."""
     cat = catalogue()
     today = date.today()
     state_path = config.data_dir() / "state.json"
@@ -115,12 +123,17 @@ def default_year(cat: Catalogue, today: date) -> int:
     return prediction_year(cat, today)
 
 
-@cli.command("predict")
+@cli.command("predict", examples=[("bonfire predict", "the season being predicted"),
+                                   ("bonfire predict 2027 -v", "with each rule and the years it fits"),
+                                   ("bonfire predict --json", "for scripts")])
 @click.argument("year", type=int, required=False)
 @click.option("-v", "--verbose", is_flag=True, help="Add each rule and its evidence.")
 @click.option("--json", "as_json", is_flag=True, help="Plain JSON, for scripts.")
 def predict_cmd(year: int | None, verbose: bool, as_json: bool) -> None:
-    """The season as a table, month by month, with how sure each date is."""
+    """The season, month by month, with how sure each date is.
+
+    YEAR defaults to the season being predicted: this year until Lewes night,
+    then next year."""
     cat = catalogue()
     year = year or default_year(cat, date.today())
     found = predictions(cat, year)
@@ -144,24 +157,28 @@ def predict_cmd(year: int | None, verbose: bool, as_json: bool) -> None:
     click.echo()
 
 
-@cli.command("list")
+@cli.command("list", examples=[("bonfire list", "every society, with the ID other commands take")])
 def list_cmd() -> None:
-    """Every society and event: status, rule and the years with evidence."""
+    """Every society and event: its ID, status, rule and the years with known dates."""
     cat = catalogue()
     rows = []
     for s in sorted(cat.societies.values(), key=lambda s: s.name.lower()):
         years = " ".join(sorted({str(k.date.year) for k in s.known})) or "—"
-        cells = [s.name, s.kind, s.status, describe(cat, s.rule), years]
+        mark = s.emoji or EMOJI[s.kind]
+        cells = [f"{mark} {s.name}", s.id, "" if s.status == "active" else s.status, describe(cat, s.rule), years]
         style = {} if s.status == "active" else {"dim": True}
         rows.append([(c, style) if style else c for c in cells])
     click.echo()
-    click.echo(table(rows, ["Society", "Kind", "Status", "Rule", "Known"]))
+    click.echo(table(rows, ["Society", "ID", "Status", "Rule", "Known"]))
     click.echo()
 
 
-@cli.command("check")
+@cli.command("check", examples=[("bonfire check", "after editing societies.toml")])
 def check_cmd() -> None:
-    """Check the data files: unknown anchors and sources, cycles, rules that miss known dates."""
+    """Check the data files, and show rules that miss a known date.
+
+    Lists every problem at once (file, society and what's wrong) and exits 1
+    if there are any."""
     cat = catalogue()  # exits 1, listing every problem, if there are any
     active = [s for s in cat.societies.values() if s.status == "active"]
     click.secho(f"No problems: {len(cat.societies)} entries, {len(active)} active.", fg="green")
@@ -183,15 +200,23 @@ def _date(_ctx, _param, value: str | None) -> date | None:
         raise click.BadParameter("use a date like 2027-10-23") from None
 
 
-@cli.command("confirm")
+@cli.command("confirm", examples=[
+    ("bonfire confirm firle 2027-10-23", "a date you know first-hand (kept private)"),
+    ("bonfire confirm uckfield 2027-09-04 --source society --url https://…", "from the society's own page"),
+])
 @click.argument("society")
 @click.argument("day", metavar="DATE", callback=_date)
-@click.option("--source", type=click.Choice(SOURCES), default="verified", show_default=True,
-              help="How the date is known.")
-@click.option("--url", help="Where it was found, if online.")
-@click.option("--checked", callback=_date, help="When it was checked (default: today).")
+@click.option("--source", type=click.Choice(SOURCES), default="verified", metavar="SOURCE",
+              help=f"How the date is known: {', '.join(SOURCES[:-1])} or {SOURCES[-1]}. Default: verified.")
+@click.option("--url", metavar="URL", help="Where it was found, if online.")
+@click.option("--checked", callback=_date, metavar="DATE", help="When it was checked. Default: today.")
 def confirm_cmd(society: str, day: date, source: str, url: str | None, checked: date | None) -> None:
-    """Record a published or verified date. Then run `bonfire sync`."""
+    """Record a society's date for a year; it then counts as 100%.
+
+    SOCIETY is its ID, as `bonfire list` shows (a near miss suggests the
+    right one). DATE is like 2027-10-23. A first-hand date (the default
+    source, verified) is kept private in data/known.toml; any other goes in
+    the public confirmed.toml. Then run `bonfire sync`."""
     sid = research.resolve_id(catalogue(), society)
     private = source == "verified"  # known first-hand: kept out of the public repo
     target = config.known_file() if private else config.CONFIRMED_FILE
@@ -210,10 +235,13 @@ def confirm_cmd(society: str, day: date, source: str, url: str | None, checked: 
     click.echo(dim("Run `bonfire sync` to update the calendar."))
 
 
-@cli.command("todo")
+@cli.command("todo", examples=[("bonfire todo", "the season being predicted"),
+                                ("bonfire todo 2028", "a later season")])
 @click.argument("year", type=int, required=False)
 def todo_cmd(year: int | None) -> None:
-    """Events still only predicted, soonest first, with where to look."""
+    """Events still only predicted, soonest first, with where to look.
+
+    YEAR defaults to the season being predicted."""
     cat = catalogue()
     today = date.today()
     year = year or default_year(cat, today)
@@ -232,10 +260,12 @@ def todo_cmd(year: int | None) -> None:
     click.echo()
 
 
-@cli.command("sources")
+@cli.command("sources", examples=[("bonfire sources lewes", "why Lewes is rated as it is")])
 @click.argument("society")
 def sources_cmd(society: str) -> None:
-    """Links, and the evidence behind each date and the rule."""
+    """One society: its rating, rule, links and the evidence for each date.
+
+    SOCIETY is its ID, as `bonfire list` shows."""
     cat = catalogue()
     s = cat.societies[research.resolve_id(cat, society)]
     year = default_year(cat, date.today())
@@ -269,11 +299,14 @@ def sources_cmd(society: str) -> None:
     click.echo()
 
 
-@cli.command("evidence")
+@cli.command("evidence", examples=[("bonfire evidence firle ~/Downloads/poster.jpg", "keep a copy of a poster")])
 @click.argument("society")
 @click.argument("file", type=click.Path(exists=True, dir_okay=False, path_type=Path))
 def evidence_cmd(society: str, file: Path) -> None:
-    """File a poster, screenshot or saved page locally. It is never published."""
+    """Keep a copy of a poster, screenshot or saved page. Never published.
+
+    SOCIETY is its ID, as `bonfire list` shows. FILE is copied into
+    data/evidence/SOCIETY/, dated, and never overwrites an earlier copy."""
     sid = research.resolve_id(catalogue(), society)
     target = research.file_evidence(config.data_dir(), sid, file, date.today())
     click.echo(click.style("Filed: ", fg="green") + str(target))

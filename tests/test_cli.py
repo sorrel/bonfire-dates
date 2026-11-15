@@ -184,3 +184,61 @@ def test_sources_shows_rating_and_a_table_of_dates(confirmed):
     rows = _rows_after(out, "Date")
     assert any("2024" in r and "guide" in r for r in rows)
     assert not [line for line in out.splitlines() if line != line.rstrip()]
+
+
+# --- Help that reads easily -------------------------------------------------
+
+def test_top_help_groups_commands_by_task_without_truncation():
+    out = run("--help").output
+    sections = ["See the season", "Keep the calendar", "Record news", "Look after the data"]
+    assert all(s in out for s in sections)
+    assert [out.index(s) for s in sections] == sorted(out.index(s) for s in sections)
+    assert not [line for line in out.splitlines()[1:] if "..." in line]  # no description cut short
+    assert "Typical round" in out and "bonfire confirm" in out
+
+
+def test_short_h_works_everywhere():
+    assert run("-h").exit_code == 0
+    assert run("sync", "-h").exit_code == 0
+
+
+def test_command_help_explains_arguments_with_examples():
+    out = run("confirm", "--help").output
+    assert "SOCIETY" in out and "bonfire list" in out  # where to find ids
+    assert "Examples" in out and "bonfire confirm firle 2027-10-23" in out
+    for cmd in ("sync", "predict", "todo", "sources", "evidence", "list", "check"):
+        assert "Examples" in run(cmd, "--help").output, cmd
+
+
+def test_list_shows_ids(confirmed):
+    out = run("list").output
+    assert "ID" in out and "firle-badge" in out
+
+
+def test_help_headings_are_bold_on_a_terminal():
+    out = run("--help", color=True).output
+    assert "\x1b[1m" in out  # bold
+
+
+def test_help_columns_line_up_across_sections():
+    import re
+    out = run("--help").output
+    starts = {m.start(2) for line in out.splitlines() if (m := re.match(r"  (predict|todo|list|sync|confirm|sources|evidence|check) +(\S)", line))}
+    assert len(starts) == 1
+
+
+def test_examples_put_each_command_on_its_own_line():
+    out = run("confirm", "-h").output
+    assert "\n\n\n" not in out
+    lines = out.splitlines()
+    i = next(n for n, line in enumerate(lines) if line.strip() == "bonfire confirm firle 2027-10-23")
+    assert lines[i - 1].strip().endswith(":")  # its description sits above it
+    assert "SOURCE" in out and "verified|society" not in out
+
+
+def test_list_is_compact(confirmed):
+    out = run("list").output
+    from bonfire_dates.display import width
+    assert max(width(line) for line in out.splitlines()) <= 150  # was 157, with a Kind column
+    assert "🦡 Firle badge night" in out and "unknown" in out
+    assert "Kind" not in out
