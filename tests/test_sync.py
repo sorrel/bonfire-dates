@@ -24,7 +24,7 @@ def keys(cal: FakeCalendar) -> set[str]:
 def test_first_sync_writes_rest_of_2026_and_all_2027(tmp_path):
     cal = FakeCalendar()
     result = sync.run(CAT, cal, tmp_path / "state.json", TODAY, dry_run=False)
-    assert "barcombe:2026" in keys(cal)
+    assert "robertsbridge:2026" in keys(cal)  # a known date, still to come
     assert "firle:2026" not in keys(cal)  # already past
     assert "firle:2027" in keys(cal) and "uckfield:2027" in keys(cal)
     assert result.written == len(cal.events) and result.failed == []
@@ -238,3 +238,22 @@ def test_up_to_date_says_the_count_once(tmp_path, monkeypatch):
     CliRunner().invoke(cli.cli, ["sync"])
     out = CliRunner().invoke(cli.cli, ["sync"]).output
     assert "up to date" in out and out.count(" events") == 1
+
+
+# --- After Lewes night, this year shows only known dates --------------------
+
+def test_after_lewes_this_year_keeps_only_known_dates():
+    want = sync.wanted(CAT, TODAY)  # 15 Nov 2026, after Lewes
+    assert "robertsbridge:2026" in want  # a published date
+    assert "chiddingly:2026" not in want  # only a prediction
+    assert "chiddingly:2027" in want
+
+
+def test_before_lewes_this_year_is_still_predicted():
+    assert "chiddingly:2026" in sync.wanted(CAT, date(2026, 10, 1))
+
+
+def test_prediction_year_turns_over_after_lewes():
+    from bonfire_dates.predict import prediction_year
+    assert prediction_year(CAT, date(2026, 11, 5)) == 2026
+    assert prediction_year(CAT, date(2026, 11, 6)) == 2027

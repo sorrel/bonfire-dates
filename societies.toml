@@ -90,7 +90,7 @@ kind = "night"
 status = "active"
 place = "Northiam, East Sussex"
 links = { website = "https://www.northiambonfiresociety.org.uk" }
-rule = { month = 10, weekday = "sat", nth = 1, guess = true }
+rule = { month = 10, weekday = "sat", nth = 1 }
 known = [
   { date = 2026-10-03, source = "society", url = "https://www.northiambonfiresociety.org.uk/other-sussex-bonfire-events", checked = 2026-11-15 },
 ]
@@ -100,7 +100,7 @@ name = "Rotherfield & Mark Cross"
 kind = "night"
 status = "active"
 place = "Rotherfield, East Sussex"
-rule = { month = 10, weekday = "sat", nth = 1, guess = true }
+rule = { month = 10, weekday = "sat", nth = 1 }
 
 [lewes-fancy-dress]
 name = "Lewes bonfire fancy dress"
@@ -234,7 +234,7 @@ name = "Isfield & Little Horsted"
 kind = "night"
 status = "active"
 place = "Isfield, East Sussex"
-rule = { anchor = "newick", weekday = "fri", direction = "before" }
+rule = { month = 10, weekday = "fri", nth = -1, note = "always a Friday; fits 2024 to 2026, when Friday before Newick missed 2024" }
 
 [newick]
 name = "Newick"
@@ -319,7 +319,7 @@ kind = "night"
 status = "active"
 place = "South Heighton, East Sussex"
 links = { website = "https://southheighton.org/bonfire-society-homepage" }
-rule = { month = 11, weekday = "sat", nth = 2, source = "society", url = "https://southheighton.org/bonfire-society-homepage", checked = 2026-11-15, note = "the second Saturday in November" }
+rule = { month = 11, weekday = "sat", nth = 2, source = "society", url = "https://southheighton.org/bonfire-society-homepage", checked = 2026-11-15, guess = true, note = "the second Saturday in November, by its own site; still doubtful" }
 
 [glynde-membership]
 name = "Glynde, Beddingham & Firle membership night"

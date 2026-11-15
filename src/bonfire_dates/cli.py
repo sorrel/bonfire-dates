@@ -11,7 +11,7 @@ from .calendar_app import Calendar, MacCalendar
 from .display import dim, heading, percent_cell, table
 from .load import DataError, load
 from .model import SOURCES, Catalogue, Known
-from .predict import predict_one, predictions
+from .predict import predict_one, prediction_year, predictions
 from .rules import describe, rule_date
 
 
@@ -111,8 +111,8 @@ def sync_report(result: sync.SyncResult, today: date, dry_run: bool) -> None:
 
 
 def default_year(cat: Catalogue, today: date) -> int:
-    """This year while any of its season is still to come, else next year."""
-    return today.year if any(p.day >= today for p in predictions(cat, today.year)) else today.year + 1
+    """The season being predicted: next year once this year's Lewes night has passed."""
+    return prediction_year(cat, today)
 
 
 @cli.command("predict")

@@ -57,3 +57,16 @@ def test_seed_is_neutral():
 
 def test_bexhill_is_not_listed():
     assert "bexhill" not in CAT.societies  # there is no Bexhill society
+
+
+def test_isfield_is_the_last_friday_of_october():
+    assert date_for(CAT, "isfield", 2024) == date(2024, 10, 25)
+    assert date_for(CAT, "isfield", 2027) == date(2027, 10, 29)
+
+
+def test_rules_now_backed_by_evidence_are_not_guesses():
+    assert not CAT.societies["rotherfield"].rule.guess
+
+
+def test_doubtful_rules_are_guesses():
+    assert CAT.societies["south-heighton"].rule.guess and CAT.societies["nevill"].rule.guess

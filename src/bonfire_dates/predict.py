@@ -84,3 +84,11 @@ def predict_one(cat: Catalogue, society_id: str, year: int) -> Prediction | None
 def predictions(cat: Catalogue, year: int) -> list[Prediction]:
     found = (predict_one(cat, sid, year) for sid in cat.societies)
     return sorted((p for p in found if p), key=lambda p: (p.day, p.society.name))
+
+
+def prediction_year(cat: Catalogue, today: date) -> int:
+    """The season being predicted: this year until Lewes night (5 November, or
+    the Saturday before), next year after it. By then the rest of the season's
+    dates are known, so the current year keeps only those."""
+    lewes = date_for(cat, "lewes", today.year) if "lewes" in cat.societies else None
+    return today.year if today <= (lewes or date(today.year, 11, 5)) else today.year + 1
