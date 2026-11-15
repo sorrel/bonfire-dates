@@ -395,9 +395,12 @@ place = "Icklesham, East Sussex"
 [lindfield]
 name = "Lindfield"
 kind = "night"
-status = "unknown"
+status = "active"
 links = { website = "https://lindfieldbonfiresociety.co.uk" }
 place = "Lindfield, West Sussex"
+confidence = 95
+why = "fixed by tradition"
+rule = { month = 11, day = 5, sunday = "sat-before" }
 
 [maresfield]
 name = "Maresfield"

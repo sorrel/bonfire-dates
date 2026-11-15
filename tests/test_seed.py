@@ -21,6 +21,7 @@ APPENDIX_2027 = [
     ("battle", 11, 6), ("chailey", 11, 6), ("east-hoathly", 11, 13), ("rye", 11, 13),
     ("south-heighton", 11, 13), ("glynde-membership", 11, 17), ("glynde-parade", 11, 19),
     ("barcombe", 11, 20), ("robertsbridge", 11, 20), ("chiddingly", 11, 27),
+    ("lindfield", 11, 5),
 ]
 
 
@@ -70,3 +71,8 @@ def test_rules_now_backed_by_evidence_are_not_guesses():
 
 def test_doubtful_rules_are_guesses():
     assert CAT.societies["south-heighton"].rule.guess and CAT.societies["nevill"].rule.guess
+
+
+def test_lindfield_is_5_november_or_the_saturday_before():
+    assert date_for(CAT, "lindfield", 2027) == date(2027, 11, 5)
+    assert date_for(CAT, "lindfield", 2028) == date(2028, 11, 4)  # the 5th is a Sunday
