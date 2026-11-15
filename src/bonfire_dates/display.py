@@ -32,8 +32,10 @@ def _text(c: Cell) -> str:
 
 
 def _styled(c: Cell, cols: int) -> str:
-    padded = _pad(_text(c), cols)
-    return padded if isinstance(c, str) else click.style(padded, **c[1])
+    """Style the text only and pad outside it, so a line's trailing spaces can be trimmed."""
+    text = _text(c)
+    shown = click.style(text, **c[1]) if text and not isinstance(c, str) else text
+    return shown + " " * max(0, cols - width(text))
 
 
 def table(rows: list[list[Cell]], header: list[str], indent: str = "  ") -> str:
@@ -44,7 +46,7 @@ def table(rows: list[list[Cell]], header: list[str], indent: str = "  ") -> str:
     rule = indent + "─" * (sum(widths) + 2 * (len(widths) - 1))
     head = indent + click.style("  ".join(_pad(h, w) for h, w in zip(header, widths, strict=True)).rstrip(),
                                 bold=True)
-    return "\n".join([head, click.style(rule, dim=True), *(line(r) for r in rows)])
+    return "\n".join([head, click.style(rule, dim=True), *(line(r).rstrip(" ") for r in rows)])
 
 
 def heading(text: str) -> str:
