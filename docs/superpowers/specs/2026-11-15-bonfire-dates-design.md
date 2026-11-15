@@ -289,6 +289,7 @@ with their sources, first-hand ones privately in the user's `data/known.toml`.
 | Sat 30 Oct | 🔥 Ewhurst & Staplecross | last Sat Oct | medium |
 | Thu 4 Nov | 🦡 Lewes badge night | the evening before Lewes | high |
 | Fri 5 Nov | 🔥 Lewes (Cliffe, Borough, Commercial Square, Southover, South Street, Waterloo) | 5 Nov; Sat before if Sun | certain |
+| Fri 5 Nov | 🔥 Lindfield | 5 Nov; Sat before if Sun | high |
 | Sat 6 Nov | 🔥 Battle | first Sat after 5 Nov | high |
 | Sat 6 Nov | 🔥 Chailey | Sat after 5 Nov? | low |
 | Fri 12 Nov | 🔥 Hawkhurst Gang | unknown (a Friday in 2026) | low |
@@ -307,7 +308,7 @@ misses one recorded year, but both give 20 Nov in 2027.
 The data should keep one rule and record the other in a note.
 
 **Listed with status `unknown` (no events until a date is recorded):**
-Cowbeech, Edenbridge (Kent), Icklesham (Robin Hood), Lindfield,
+Cowbeech, Edenbridge (Kent), Icklesham (Robin Hood),
 Maresfield, Meeching (Newhaven), Shoreham, Vines Cross, Whatlington Renegades,
 Worthing, Cuckfield (fireworks display), and Buxted's badge night (spring 2026
 dates conflict: Fri 17 Apr or Fri 22 May).
