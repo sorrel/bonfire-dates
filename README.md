@@ -35,7 +35,7 @@ then the rule and the evidence behind it.
 | `bonfire confirm ID DATE [--source …] [--url …]` | Record a date once it's known |
 | `bonfire evidence ID FILE` | Keep a poster or screenshot locally (never published) |
 | `bonfire sources ID` | The links and evidence behind a society's dates |
-| `bonfire list` | Every society and event, with its rule |
+| `bonfire list` | Every society and event: its ID (what other commands take), rule and known years |
 | `bonfire check` | Check the data files |
 
 ## Keeping it up to date
