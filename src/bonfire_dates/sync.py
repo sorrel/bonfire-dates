@@ -82,7 +82,7 @@ def _upsert_item(p: Prediction, before: dict | None) -> Item:
     changes = []
     if before.get("percent") is not None and before["percent"] != p.percent:
         changes.append(f"was {before['percent']}%")
-    if before.get("title") and before["title"].rstrip("?") != p.title.rstrip("?"):  # "?" follows the percent
+    if before.get("title") and before["title"].rstrip("?") != p.title.rstrip("?"):  # older titles ended in "?" below 70%
         changes.append(f"was “{before['title']}”")
     item.note = ", ".join(changes) or "details changed"
     return item

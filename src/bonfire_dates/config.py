@@ -6,7 +6,6 @@ from zoneinfo import ZoneInfo
 TZ = ZoneInfo("Europe/London")
 CALENDAR_NAME = "Bonfire"
 MARK = "bonfire-dates:"  # each event's URL: this, then its key (see calendar.js)
-QUESTION_BELOW = 70  # titles of events rated below this get a trailing "?"
 
 REPO_DIR = Path(__file__).resolve().parents[2]
 SOCIETIES_FILE = REPO_DIR / "societies.toml"

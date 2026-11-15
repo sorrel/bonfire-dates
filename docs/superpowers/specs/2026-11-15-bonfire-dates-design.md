@@ -193,9 +193,9 @@ any that look wrong (with `confidence = NN` and a `why`).
   creates it in Calendar.app under iCloud, as for albion-tickets.
 - Event key: `<society-id>:<year>`.
 - Titles: `🔥 Firle` for nights, `🦡 Firle badge night` for badge nights, and a
-  fitting emoji for other events (🎭 fancy dress, 🕯️ memorial parade). Below
-  about 70% the title gets a trailing `?` (`🔥 Ninfield?`). The percentage
-  itself goes at the top of the notes ("Confidence 85%").
+  fitting emoji for other events (🎭 fancy dress, 🕯️ memorial parade). Titles stay
+  plain whatever the rating (the user's call: the percentage already says how
+  sure); it goes at the top of the notes ("Confidence 85%").
 - The location is the place, pinned by Maps when written (as albion-tickets
   does for non-league grounds).
 - Notes: confidence, the rule in words, the evidence, and "predicted, not

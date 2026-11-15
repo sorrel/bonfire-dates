@@ -21,9 +21,9 @@ by hand and every date is recorded with its source.
 4. `uv run bonfire sync --dry-run`, then `uv run bonfire sync`. Allow **full
    calendar access** when macOS asks. Only the Bonfire calendar is ever changed.
 
-Events with a known start time are timed; the rest are all-day. A title ending
-in `?` means the date is below 70% sure. Each event's notes give the
-percentage, the rule and the evidence behind it.
+Events with a known start time are timed; the rest are all-day. Titles are
+plain; each event's notes start with how sure the date is ("Confidence 85%"),
+then the rule and the evidence behind it.
 
 ## Commands
 

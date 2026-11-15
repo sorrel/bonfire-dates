@@ -51,8 +51,7 @@ class Prediction:
     @property
     def title(self) -> str:
         emoji = self.society.emoji or EMOJI[self.society.kind]
-        unsure = "?" if self.percent < config.QUESTION_BELOW else ""
-        return f"{emoji} {self.society.name}{unsure}"
+        return f"{emoji} {self.society.name}"  # how sure: the notes' first line
 
     @property
     def notes(self) -> str:
