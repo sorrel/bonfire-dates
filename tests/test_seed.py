@@ -53,3 +53,7 @@ def test_seed_is_neutral():
         text = path.read_text().lower()
         for word in ("observed", "went", "attended", "/users/", "@", '"verified"'):
             assert word not in text, (path.name, word)
+
+
+def test_bexhill_is_not_listed():
+    assert "bexhill" not in CAT.societies  # there is no Bexhill society
