@@ -61,7 +61,8 @@ known dates from other years: each one it reproduces adds weight by source
 (verified 1.0, society 0.9, guides 0.6, guide 0.35, wiki 0.25), and the
 percentage is 25 + 25 × weight, up to 92%. A rule that misses a verified or
 society date is capped at 60%, and a guessed rule at 35%. Badge nights are 10%
-unless marked to be rated on their evidence. Lewes is set by hand at 99%.
+unless marked to be rated on their evidence. Lewes is set by hand at 100% (fixed by tradition) and Lindfield at 95%; a
+hand-set 100% has no ✓, which marks a date published or known for that year.
 
 ## Adding a society or a rule
 

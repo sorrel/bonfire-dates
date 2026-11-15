@@ -165,8 +165,10 @@ Confidence is a **percentage**, computed per event per year:
 
 - **100%, confirmed:** the year has a known date. It is used as-is and wins
   over the rule.
+- **Set by hand:** a date fixed by tradition carries its own rating: Lewes
+  100% (no ✓, as nothing has confirmed the year), Lindfield 95%.
 - **Otherwise, 1–99%:** from how many recorded years the rule reproduces,
-  weighted by source trust. As a guide: Lewes ~99%; a rule matching three
+  weighted by source trust. As a guide: a rule matching three
   `verified` years ~90%; two trusted years ~75–85%; one trusted year or two
   guides ~50–60%; a single guide, Wikipedia alone, or a rule marked as a guess
   ~20–35%. A rule that contradicts any trusted known date is capped (~60%).
