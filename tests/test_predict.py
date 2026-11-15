@@ -10,8 +10,10 @@ CAT = with_history(load(config.SOCIETIES_FILE, None), ["newick", "firle", "firle
 P2027 = {p.society.id: p for p in predictions(CAT, 2027)}
 
 
-def test_title_marks_uncertain():
-    assert P2027["ninfield"].title == "🔥 Ninfield?"
+def test_title_is_plain_whatever_the_percent():
+    assert P2027["ninfield"].percent < 70
+    assert P2027["ninfield"].title == "🔥 Ninfield"  # the percentage is in the notes and the tables
+    assert P2027["ninfield"].notes.startswith(f"Confidence {P2027['ninfield'].percent}%")
     assert P2027["uckfield"].title == "🔥 Uckfield"
 
 
