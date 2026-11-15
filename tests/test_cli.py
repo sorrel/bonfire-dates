@@ -77,7 +77,7 @@ def test_confirm_rejects_bad_source(confirmed):
 def test_todo_shows_links(confirmed):
     r = run("todo", "2027")
     assert r.exit_code == 0
-    assert "https://www.firlebonfire.co.uk" in r.output
+    assert any(word == "https://www.firlebonfire.co.uk" for word in r.output.split())  # the whole address
 
 
 def test_sources_lists_evidence(confirmed):
