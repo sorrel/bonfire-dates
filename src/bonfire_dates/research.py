@@ -49,7 +49,7 @@ def resolve_id(cat: Catalogue, text: str) -> str:
         return text
     near = difflib.get_close_matches(text, cat.societies, n=3, cutoff=0.5)
     hint = f" Did you mean {', '.join(near)}?" if near else " `bonfire list` shows them all."
-    raise click.BadParameter(f"no society {text!r}.{hint}", param_hint="ID")
+    raise click.BadParameter(f"no society {text!r}.{hint}", param_hint="SOCIETY")
 
 
 def last_checked(s: Society) -> date | None:

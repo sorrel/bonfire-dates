@@ -141,3 +141,9 @@ def test_confirm_with_public_source_goes_to_public_file(confirmed, tmp_path):
     run("confirm", "firle", "2027-10-23", "--source", "society", "--url", "https://example.org/p")
     assert "firle" in confirmed.read_text()
     assert not (tmp_path / "data" / "known.toml").exists()
+
+
+def test_unknown_society_error_names_the_argument_as_usage_does():
+    r = run("confirm", "firl", "2027-10-23")
+    assert r.exit_code != 0
+    assert "for SOCIETY:" in r.output and "for ID" not in r.output
