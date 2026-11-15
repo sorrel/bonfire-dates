@@ -200,8 +200,10 @@ any that look wrong (with `confidence = NN` and a `why`).
   does for non-league grounds).
 - Notes: confidence, the rule in words, the evidence, and "predicted, not
   published" until confirmed.
-- **Horizon:** `sync` covers the current season (if any of it is still to
-  come) and the next. It never edits or removes past events.
+- **Horizon:** `sync` covers the rest of this year and all of next. Once this
+  year's Lewes night has passed, the season counts as decided: this year keeps
+  only known dates, and predictions are for next year (`prediction_year`). It
+  never edits or removes past events.
 - When a society's prediction changes, its event moves. When a society leaves
   the active list or loses its rule, its future events are removed.
 
@@ -282,7 +284,7 @@ with their sources, first-hand ones privately in the user's `data/known.toml`.
 | Sat 23 Oct | 🔥 Littlehampton | 4th Sat Oct? | medium |
 | Sat 23 Oct | 🔥 Ninfield | 4th Sat Oct? | low |
 | Sat 23 Oct | 🔥 Nevill (Lewes) | about two Saturdays before 5 Nov? | low |
-| Fri 29 Oct | 🔥 Isfield & Little Horsted | Fri before Newick | medium |
+| Fri 29 Oct | 🔥 Isfield & Little Horsted | last Friday of October | high |
 | Sat 30 Oct | 🔥 Newick | Sat before 5 Nov | high |
 | Sat 30 Oct | 🔥 Ewhurst & Staplecross | last Sat Oct | medium |
 | Thu 4 Nov | 🦡 Lewes badge night | the evening before Lewes | high |

@@ -147,3 +147,10 @@ def test_unknown_society_error_names_the_argument_as_usage_does():
     r = run("confirm", "firl", "2027-10-23")
     assert r.exit_code != 0
     assert "for SOCIETY:" in r.output and "for ID" not in r.output
+
+
+def test_default_year_is_the_season_being_predicted(confirmed):
+    from datetime import date
+    from bonfire_dates.cli import catalogue, default_year
+    assert default_year(catalogue(), date(2026, 11, 15)) == 2027
+    assert default_year(catalogue(), date(2026, 10, 1)) == 2026

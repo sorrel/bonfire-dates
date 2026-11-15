@@ -1,6 +1,7 @@
 """Bringing the Bonfire calendar in line with the predictions.
 
-The horizon is the rest of this year and all of next. Events dated before
+The horizon is the rest of this year and all of next; after Lewes night this
+year keeps only known dates (see `predict.prediction_year`). Events dated before
 today are never written or removed. Only successful writes are recorded, so a
 failure is simply retried on the next sync.
 """
@@ -13,7 +14,7 @@ from pathlib import Path
 from . import store
 from .calendar_app import Calendar, CalendarError, Change, payload
 from .model import Catalogue
-from .predict import Prediction, predictions
+from .predict import Prediction, prediction_year, predictions
 
 
 def fingerprint(p: Prediction) -> str:
@@ -52,7 +53,11 @@ class SyncResult:
 
 
 def wanted(cat: Catalogue, today: date) -> dict[str, Prediction]:
-    found = [p for year in (today.year, today.year + 1) for p in predictions(cat, year)]
+    """Everything still to come this year and next; once this year's season is
+    decided (after Lewes night), only this year's known dates."""
+    decided = prediction_year(cat, today) > today.year
+    found = [p for year in (today.year, today.year + 1) for p in predictions(cat, year)
+             if not (decided and year == today.year and not p.confirmed)]
     return {p.key: p for p in found if p.day >= today}
 
 

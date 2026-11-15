@@ -36,7 +36,8 @@ dependency, British English, feature branches only, designed terminal output.
 collected) → `rules` (`date_for`, `rule_date`, `describe`) → `confidence`
 (`rate`: percentages, formula in its docstring) → `predict` (`Prediction`:
 title, notes, all-day or timed) → `sync` (state hash per event, horizon this
-year and next, past events untouched) → `calendar_app` + `calendar.js`
+year and next, but only known dates for this year once Lewes night has passed;
+past events untouched) → `calendar_app` + `calendar.js`
 (EventKit, copied from albion-tickets, plus all-day). `research` handles
 `confirm` (appends text to `confirmed.toml`), local evidence and `todo`.
 `cli.py` holds only commands; `display.py` the shared table helpers.
