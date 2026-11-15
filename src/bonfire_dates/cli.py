@@ -70,7 +70,7 @@ def sync_report(result: sync.SyncResult, today: date, dry_run: bool) -> None:
     """Each change as a row, then a one-line tally, what the calendar holds, and what's next."""
     name = config.CALENDAR_NAME + " calendar"
     if not result.items:
-        click.echo(heading(name) + "  is up to date: " + plural(len(result.events), "event") + ", nothing to change.")
+        click.echo(heading(name) + "  is up to date, nothing to change.")
     else:
         if dry_run:
             click.echo(heading(name) + f"  would make {plural(len(result.items), 'change')}" + dim("  (dry run)"))

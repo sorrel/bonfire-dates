@@ -229,3 +229,12 @@ def test_cli_sync_counts_only_events_actually_held_and_no_trailing_spaces(tmp_pa
     out = CliRunner().invoke(cli.cli, ["sync"]).output
     assert f"holds {len(cal.events)} of {len(cal.events) + 1} events" in out
     assert not [line for line in out.splitlines() if line != line.rstrip()]
+
+
+def test_up_to_date_says_the_count_once(tmp_path, monkeypatch):
+    from bonfire_dates import cli
+    monkeypatch.setattr(cli, "make_calendar", lambda: FakeCalendar())
+    monkeypatch.setenv("BONFIRE_DATA_DIR", str(tmp_path))
+    CliRunner().invoke(cli.cli, ["sync"])
+    out = CliRunner().invoke(cli.cli, ["sync"]).output
+    assert "up to date" in out and out.count(" events") == 1
