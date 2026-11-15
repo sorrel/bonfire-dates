@@ -257,3 +257,18 @@ def test_prediction_year_turns_over_after_lewes():
     from bonfire_dates.predict import prediction_year
     assert prediction_year(CAT, date(2026, 11, 5)) == 2026
     assert prediction_year(CAT, date(2026, 11, 6)) == 2027
+
+
+def test_update_note_says_what_it_can(tmp_path):
+    cal = FakeCalendar()
+    path = tmp_path / "state.json"
+    sync.run(CAT, cal, path, TODAY, dry_run=False)
+    noted = with_society(CAT, "seaford", note="moved to the seafront")  # notes only
+    item = next(i for i in sync.run(noted, cal, path, TODAY, dry_run=True).items if i.key == "seaford:2027")
+    assert item.note == "notes changed"
+    state = store.load(path)
+    for e in state.events.values():
+        e.pop("title"), e.pop("percent")  # as written before titles were recorded
+    store.save(state, path, TODAY)
+    item = next(i for i in sync.run(noted, cal, path, TODAY, dry_run=True).items if i.key == "seaford:2027")
+    assert item.note == "title or notes changed"

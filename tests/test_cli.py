@@ -154,3 +154,33 @@ def test_default_year_is_the_season_being_predicted(confirmed):
     from bonfire_dates.cli import catalogue, default_year
     assert default_year(catalogue(), date(2026, 11, 15)) == 2027
     assert default_year(catalogue(), date(2026, 10, 1)) == 2026
+
+
+def _rows_after(out: str, header_start: str) -> list[str]:
+    lines = out.splitlines()
+    i = next(n for n, line in enumerate(lines) if line.strip().startswith(header_start))
+    rows = []
+    for line in lines[i + 2:]:  # skip the header and its rule
+        if not line.strip():
+            break
+        rows.append(line)
+    return rows
+
+
+def test_todo_is_an_aligned_table(confirmed):
+    out = run("todo", "2027").output
+    assert "Date" in out and "Checked" in out and "Where to look" in out
+    rows = _rows_after(out, "Date")
+    from bonfire_dates.display import width
+    import re
+    sure_col = {width(r[:m.start()]) for r in rows if (m := re.search(r"\b\d+%", r))}
+    assert len(rows) > 10 and len(sure_col) == 1  # every percentage starts in the same column
+    assert not [line for line in out.splitlines() if line != line.rstrip()]
+
+
+def test_sources_shows_rating_and_a_table_of_dates(confirmed):
+    out = run("sources", "glynde-parade").output
+    assert "rated" in out and "%" in out
+    rows = _rows_after(out, "Date")
+    assert any("2024" in r and "guide" in r for r in rows)
+    assert not [line for line in out.splitlines() if line != line.rstrip()]

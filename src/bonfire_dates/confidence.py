@@ -1,12 +1,14 @@
 """How sure a prediction is, as a percentage, from the evidence behind its rule.
 
 1. A known date for the year: 100, confirmed.
-2. A `confidence` override in the data: that value.
+2. A `confidence` override in the data: that value, up to 100 for a date
+   fixed by tradition (still not "confirmed": no source has published it).
 3. A badge night not marked `rate_on_evidence`: the catalogue's badge default.
 4. Otherwise s = the summed weight of matching evidence (known dates from other
    years that the rule reproduces, plus the rule's own evidence), and the
    percent is min(92, 25 + 25·s), capped at 60 if a verified or society date
    contradicts the rule and at 35 if the rule is a guess. Always 1–99.
+   Only a known date or a hand-set override reaches 100.
 """
 from dataclasses import dataclass, field
 
@@ -34,7 +36,7 @@ def rate(cat: Catalogue, society_id: str, year: int) -> Rating:
     if known := s.known_in(year):
         return Rating(100, True, f"confirmed ({known.evidence.source})", [known])
     if s.confidence is not None:
-        return Rating(min(s.confidence, 99), False, s.why or "set by hand")
+        return Rating(s.confidence, False, s.why or "set by hand")  # load checks it is 1–100
     if s.kind == "badge" and not s.rate_on_evidence:
         return Rating(cat.badge_confidence, False, "badge nights are rarely fixed far ahead")
     matches, contradictions = [], []

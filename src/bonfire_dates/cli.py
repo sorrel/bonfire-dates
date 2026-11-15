@@ -219,26 +219,17 @@ def todo_cmd(year: int | None) -> None:
     year = year or default_year(cat, today)
     items = research.todo(cat, year, today)
     click.echo()
-    click.echo(heading(f"Still to confirm for {year}: {len(items)}"))
-    for p in items:
-        checked = research.last_checked(p.society)
-        when = f"checked {checked:%d %b %Y}" if checked else "never checked"
-        pc_text, pc_style = percent_cell(p.percent)
-        click.echo(f"  {p.day:%a %d %b}  " + click.style(p.title, bold=True) + "  "
-                   + click.style(pc_text, **pc_style) + dim(f"  {when}"))
-        for kind, link in p.society.links.items():
-            click.echo(dim(f"      {kind}: {link}"))
+    click.echo(heading(f"Still to confirm for {year}") + dim(f"  {plural(len(items), 'event')}, soonest first"))
+    if items:
+        click.echo()
+        rows = []
+        for p in items:
+            checked = research.last_checked(p.society)
+            links = "  ".join(p.society.links.values())
+            rows.append([f"{p.day:%a %d %b}", p.title, percent_cell(p.percent),
+                         f"{checked:%d %b %Y}" if checked else ("never", {"dim": True}), (links, {"dim": True})])
+        click.echo(table(rows, ["Date", "Event", "Sure", "Checked", "Where to look"]))
     click.echo()
-
-
-def _known_line(k: Known) -> str:
-    e = k.evidence
-    bits = [f"{k.date:%a %d %b %Y}  {e.source}"]
-    if e.checked:
-        bits.append(f"checked {e.checked:%d %b %Y}")
-    if e.note:
-        bits.append(e.note)
-    return "  ".join(bits) + (f"\n      {e.url}" if e.url else "")
 
 
 @cli.command("sources")
@@ -247,26 +238,34 @@ def sources_cmd(society: str) -> None:
     """Links, and the evidence behind each date and the rule."""
     cat = catalogue()
     s = cat.societies[research.resolve_id(cat, society)]
+    year = default_year(cat, date.today())
+    p = predict_one(cat, s.id, year)
     click.echo()
-    click.echo(heading(s.name) + dim(f"  {s.kind}, {s.status}"))
-    for kind, link in s.links.items():
-        click.echo(f"  {kind}: {link}")
-    click.echo(click.style("  Rule: ", bold=True) + describe(cat, s.rule))
+    rated = f"  ·  {year}: {p.day:%a %d %b}, rated {p.percent}%" if p else ""
+    click.echo(heading(s.name) + dim(f"  {s.kind}, {s.status}{rated}"))
+    if s.note:
+        click.echo(dim(f"  {s.note}"))
+    click.echo()
+    click.echo(click.style("  Rule  ", bold=True) + describe(cat, s.rule))
     if s.rule and s.rule.evidence:
         e = s.rule.evidence
-        click.echo(dim(f"    {e.source}" + (f": {e.note}" if e.note else "") + (f"  {e.url}" if e.url else "")))
+        click.echo(dim("        " + "  ".join(x for x in (e.source, e.note, e.url) if x)))
+    for kind, link in s.links.items():
+        click.echo(click.style(f"  {kind.capitalize():<6}", bold=True) + link)
     if s.known:
-        click.echo(click.style("  Known dates:", bold=True))
-        for k in sorted(s.known, key=lambda k: k.date):
-            click.echo("    " + _known_line(k))
+        click.echo()
+        rows = [[f"{k.date:%a %d %b %Y}", k.evidence.source,
+                 f"{k.evidence.checked:%d %b %Y}" if k.evidence.checked else ("—", {"dim": True}),
+                 "  ".join(x for x in (k.evidence.note, k.evidence.url) if x)]
+                for k in sorted(s.known, key=lambda k: k.date)]
+        click.echo(table(rows, ["Date", "Source", "Checked", "Note"]))
     folder = research.evidence_dir(config.data_dir(), s.id)
     files = sorted(folder.iterdir()) if folder.exists() else []
     if files:
-        click.echo(click.style("  Local evidence:", bold=True))
+        click.echo()
+        click.echo(click.style("  Local evidence", bold=True))
         for f in files:
             click.echo(dim(f"    {f}"))
-    if s.note:
-        click.echo(dim(f"  {s.note}"))
     click.echo()
 
 

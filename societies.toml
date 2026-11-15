@@ -269,7 +269,7 @@ name = "Lewes"
 kind = "night"
 status = "active"
 place = "Lewes, East Sussex"
-confidence = 99
+confidence = 100
 why = "fixed by tradition"
 rule = { month = 11, day = 5, sunday = "sat-before" }
 note = "Cliffe, Borough, Commercial Square, Southover, South Street and Waterloo; Nevill holds its own night"
