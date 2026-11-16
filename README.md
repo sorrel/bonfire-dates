@@ -54,6 +54,23 @@ when the data loads. Only dates with a public source go into the public
 `confirmed.toml`. So the repository never shows whose season it reflects, and
 your own copy still rates your well-known societies higher.
 
+## Looking for sources
+
+Websites move and lapse (one society's old domain now belongs to someone
+else), so once a season, and whenever there's reason to, search for each
+society's current pages, by hand or with an assistant. The tool itself still
+fetches nothing. The rules:
+
+- A link is added only once it has been seen live and is the society's own.
+  An address quoted by a guide or an old news story is checked first.
+- A date read online is recorded at its real trust level: `society` only
+  from the society's own site or poster, otherwise `guide` at best.
+- A source that disagrees with a date already held is not recorded; it is
+  listed for a person to judge (a postponement, a cancellation, a typo).
+- Each society searched gets `searched = YYYY-MM-DD` in `societies.toml`.
+  `bonfire sources` shows it, and `todo`'s Checked column counts it, so a
+  society not looked at for a while stands out.
+
 ## How confidence works
 
 A confirmed date is 100%. Otherwise the rule is checked against the society's

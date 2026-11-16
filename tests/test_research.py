@@ -50,5 +50,17 @@ def test_todo_lists_only_unconfirmed_future():
 
 
 def test_last_checked():
-    assert research.last_checked(CAT.societies["buxted"]) == date(2026, 11, 15)
-    assert research.last_checked(CAT.societies["uckfield"]) is None
+    from dataclasses import replace
+    unsearched = {sid: replace(s, searched=None) for sid, s in CAT.societies.items()}
+    assert research.last_checked(unsearched["buxted"]) == date(2026, 11, 15)  # its evidence
+    assert research.last_checked(unsearched["uckfield"]) is None
+
+
+def test_last_checked_counts_a_search_for_sources():
+    from dataclasses import replace
+    from datetime import date
+    from bonfire_dates import config
+    from bonfire_dates.load import load
+    from bonfire_dates.research import last_checked
+    s = load(config.SOCIETIES_FILE, None).societies["crowborough"]
+    assert last_checked(replace(s, searched=date(2031, 8, 1))) == date(2031, 8, 1)

@@ -273,6 +273,9 @@ def todo_cmd(year: int | None) -> None:
     click.echo()
 
 
+LABEL = 11  # "Instagram" and two spaces
+
+
 @cli.command("sources", examples=[("bonfire sources lewes", "why Lewes is rated as it is")])
 @click.argument("society")
 def sources_cmd(society: str) -> None:
@@ -289,12 +292,17 @@ def sources_cmd(society: str) -> None:
     if s.note:
         click.echo(dim(f"  {s.note}"))
     click.echo()
-    click.echo(click.style("  Rule  ", bold=True) + describe(cat, s.rule))
+    def label(text: str) -> str:
+        return click.style(f"  {text:<{LABEL}}", bold=True)
+
+    click.echo(label("Rule") + describe(cat, s.rule))
     if s.rule and s.rule.evidence:
         e = s.rule.evidence
-        click.echo(dim("        " + "  ".join(x for x in (e.source, e.note, e.url) if x)))
+        click.echo(dim(" " * (LABEL + 2) + "  ".join(x for x in (e.source, e.note, e.url) if x)))
     for kind, link in s.links.items():
-        click.echo(click.style(f"  {kind.capitalize():<6}", bold=True) + link)
+        click.echo(label(kind.capitalize()) + link)
+    searched = f"{s.searched:%d %b %Y}" if s.searched else "never"
+    click.echo(label("Searched") + searched + dim("  (the last time new sources were looked for)"))
     if s.known:
         click.echo()
         rows = [[f"{k.date:%a %d %b %Y}", k.evidence.source,

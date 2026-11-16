@@ -169,3 +169,15 @@ def test_private_known_file_merges_like_confirmed(tmp_path):
                   "known.toml")
     cat = load(write(tmp_path, TWO), None, local)
     assert date(2031, 10, 25) in [k.date for k in cat.societies["firle"].known]
+
+
+def test_searched_is_the_day_sources_were_last_looked_for(tmp_path):
+    text = TWO.replace('start = "18:00"', 'start = "18:00"\nsearched = 2026-11-16')
+    cat = load(write(tmp_path, text), None)
+    assert cat.societies["firle"].searched == date(2026, 11, 16)
+    assert cat.societies["newick"].searched is None
+
+
+def test_searched_must_be_a_date(tmp_path):
+    with pytest.raises(DataError, match="searched must be a date"):
+        load(write(tmp_path, TWO.replace('start = "18:00"', 'start = "18:00"\nsearched = "recently"')), None)

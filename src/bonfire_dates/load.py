@@ -14,7 +14,7 @@ from .model import (DIRECTIONS, FIXED_ANCHORS, KINDS, SOURCES, STATUSES, WEEKDAY
                     Known, Rule, Society)
 
 SOCIETY_KEYS = {"name", "kind", "status", "place", "start", "rule", "known", "of", "links", "emoji",
-                "confidence", "why", "rate_on_evidence", "note"}
+                "confidence", "why", "rate_on_evidence", "note", "searched"}
 RULE_KEYS = {"month", "day", "nth", "weekday", "anchor", "direction", "weeks", "days", "sunday", "guess",
              "source", "url", "checked", "note"}
 EVIDENCE_KEYS = {"date", "source", "url", "checked", "note"}
@@ -155,10 +155,14 @@ def _society(sid: str, raw, fname: str, out: list[str]) -> Society | None:
     if conf is not None and not (_is_int(conf) and 1 <= conf <= 100):
         out.append(f"{where}: confidence must be a whole number from 1 to 100")
         conf = None
+    searched = raw.get("searched")
+    if searched is not None and not isinstance(searched, date):
+        out.append(f"{where}: searched must be a date, like 2026-11-16")
+        searched = None
     return Society(sid, texts["name"] or sid, raw.get("kind", "night"), raw.get("status", "active"),
                    texts["place"], _start(raw.get("start"), where, out), rule, known, texts["of"],
                    dict(links), texts["emoji"], conf, texts["why"], bool(raw.get("rate_on_evidence", False)),
-                   texts["note"])
+                   texts["note"], searched)
 
 
 def problems(cat: Catalogue, fname: str = "societies.toml") -> list[str]:
