@@ -44,6 +44,8 @@ past events untouched) → `calendar_app` + `calendar.js`
 (EventKit, copied from albion-tickets, plus all-day). `research` handles
 `confirm` (appends text to `confirmed.toml`), local evidence and `todo`.
 `cli.py` holds only commands; `display.py` the shared table helpers.
+`/tidy` (`.claude/skills/tidy/`) is the assistant's routine: search for sources
+by hand under the README's rules, then sync. It is never code that fetches.
 
 - A rule's anchor may be another society: if Newick's date is known, Firle
   follows it. Anchors must not form cycles (`load` refuses them).
