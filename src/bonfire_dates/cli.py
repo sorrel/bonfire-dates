@@ -437,7 +437,7 @@ def going_list(cat: Catalogue, today: date) -> None:
 
 
 @cli.command("going", examples=[("bonfire going seaford", "its next night, 18:00 to 22:30"),
-                                 ("bonfire going lewes 2027 --from 17:00 --to 23:30", "your own hours"),
+                                 ("bonfire going robertsbridge 2027 --from 17:00 --to 23:30", "your own hours"),
                                  ("bonfire going seaford 2027 --remove", "not going after all"),
                                  ("bonfire going", "what you've marked")])
 @click.argument("society", required=False)
