@@ -64,3 +64,16 @@ def test_last_checked_counts_a_search_for_sources():
     from bonfire_dates.research import last_checked
     s = load(config.SOCIETIES_FILE, None).societies["crowborough"]
     assert last_checked(replace(s, searched=date(2031, 8, 1))) == date(2031, 8, 1)
+
+
+def test_fifth_suspect_only_flags_5_november_away_from_the_rule():
+    from datetime import date
+
+    from bonfire_dates import config
+    from bonfire_dates.load import load
+    from bonfire_dates.research import fifth_suspect
+    cat = load(config.SOCIETIES_FILE, None)
+    assert fifth_suspect(cat, "crowborough", date(2027, 11, 5)) == date(2027, 9, 11)
+    assert fifth_suspect(cat, "crowborough", date(2027, 11, 6)) is None  # only the 5th itself
+    assert fifth_suspect(cat, "lewes", date(2027, 11, 5)) is None
+    assert fifth_suspect(cat, "battle", date(2027, 11, 5)) is None  # Saturday after the 5th

@@ -260,13 +260,20 @@ def _date(_ctx, _param, value: str | None) -> date | None:
               help=f"How the date is known: {', '.join(SOURCES[:-1])} or {SOURCES[-1]}. Default: verified.")
 @click.option("--url", metavar="URL", help="Where it was found, if online.")
 @click.option("--checked", callback=_date, metavar="DATE", help="When it was checked. Default: today.")
-def confirm_cmd(society: str, day: date, source: str, url: str | None, checked: date | None) -> None:
+@click.option("--own-event", is_flag=True,
+              help="Record a 5 November date even though the rule puts the society's night elsewhere.")
+def confirm_cmd(society: str, day: date, source: str, url: str | None, checked: date | None,
+                own_event: bool) -> None:
     """Record a society's date for a year; it then counts as 100%.
 
     SOCIETY is its ID, as `bonfire list` shows (a near miss suggests the
     right one). DATE is like 2027-10-23. A first-hand date (the default
     source, verified) is kept private in data/known.toml; any other goes in
-    the public confirmed.toml. Then run `bonfire sync`."""
+    the public confirmed.toml. Then run `bonfire sync`.
+
+    A 5 November date from a public source is refused for a society whose
+    rule puts its night elsewhere: it is usually a council's or a venue's
+    fireworks night. Check who runs it; --own-event records it anyway."""
     cat = catalogue()
     sid = research.resolve_id(cat, society)
     if cat.societies[sid].kind == "visiting":
@@ -275,6 +282,11 @@ def confirm_cmd(society: str, day: date, source: str, url: str | None, checked: 
         other = cat.societies[clash[0]].name
         raise click.ClickException(f"A badge night always comes before its society's night: {other} is known "
                                    f"for {clash[1]:%a %d %b %Y}. Correct that date first if it is wrong.")
+    if source != "verified" and not own_event and (ruled := research.fifth_suspect(cat, sid, day)):
+        raise click.ClickException(
+            f"{cat.societies[sid].name}'s night is usually {ruled:%a %d %b %Y}, not 5 November. Fireworks on "
+            "the 5th are often a council's or a venue's, not the society's. If this one really is the "
+            "society's own, add --own-event.")
     private = source == "verified"  # known first-hand: kept out of the public repo
     target = config.known_file() if private else config.CONFIRMED_FILE
     target.parent.mkdir(parents=True, exist_ok=True)

@@ -79,7 +79,9 @@ fetches nothing. The rules:
 - Make sure the event is the society's own. Councils, schools and venues
   run fireworks nights in the same towns, often on 5 November, and listings
   mix them up with the society's procession. Leave out anything run by
-  someone else.
+  someone else. `confirm` refuses a 5 November date from a public source for
+  a society whose rule puts its night elsewhere; `--own-event` overrides it
+  once you've checked.
 - A source that disagrees with a date already held is not recorded; it is
   listed for a person to judge (a postponement, a cancellation, a typo).
 - Each society searched gets `searched = YYYY-MM-DD` in `societies.toml`.
