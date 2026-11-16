@@ -45,8 +45,8 @@ def cli() -> None:
 def sync_cmd(dry_run: bool) -> None:
     """Bring the Bonfire calendar in line with the predictions.
 
-    Covers the rest of this year and all of next; once Lewes night has passed,
-    this year keeps only known dates. The calendar is read back first: an
+    Covers the next 18 months, whatever the year; once Lewes night has
+    passed, this year keeps only known dates. The calendar is read back first: an
     event deleted by hand is restored, a duplicate removed, and events this
     tool didn't make are listed but left alone. Lists each event added,
     restored, moved, updated or removed. Past events are never touched, and
@@ -138,20 +138,48 @@ def default_year(cat: Catalogue, today: date) -> int:
     return prediction_year(cat, today)
 
 
+MAX_SPAN = 10
+
+
+class Years(click.ParamType):
+    """A year (2028) or a span of years (2027-2029), as a list of years."""
+    name = "years"
+
+    def convert(self, value, param, ctx):
+        if isinstance(value, list):
+            return value
+        first, sep, last = str(value).partition("-")
+        try:
+            start, end = int(first), int(last) if sep else int(first)
+        except ValueError:
+            self.fail("use a year like 2028, or a span like 2027-2029", param, ctx)
+        if end < start:
+            self.fail(f"{value}: the span runs backwards", param, ctx)
+        if end - start >= MAX_SPAN:
+            self.fail(f"{value}: at most {MAX_SPAN} years at once", param, ctx)
+        return list(range(start, end + 1))
+
+
+def years_or_default(years: list[int] | None, cat: Catalogue) -> list[int]:
+    return years or [default_year(cat, date.today())]
+
+
 @cli.command("predict", examples=[("bonfire predict", "the season being predicted"),
+                                   ("bonfire predict 2028", "a later season"),
+                                   ("bonfire predict 2027-2029", "several seasons, one after another"),
                                    ("bonfire predict 2027 -v", "with each rule and the years it fits"),
                                    ("bonfire predict --json", "for scripts")])
-@click.argument("year", type=int, required=False)
+@click.argument("years", type=Years(), required=False)
 @click.option("-v", "--verbose", is_flag=True, help="Add each rule and its evidence.")
 @click.option("--json", "as_json", is_flag=True, help="Plain JSON, for scripts.")
-def predict_cmd(year: int | None, verbose: bool, as_json: bool) -> None:
+def predict_cmd(years: list[int] | None, verbose: bool, as_json: bool) -> None:
     """The season, month by month, with how sure each date is.
 
-    YEAR defaults to the season being predicted: this year until Lewes night,
-    then next year."""
+    YEARS is a year (2028) or a span (2027-2029). It defaults to the season
+    being predicted: this year until Lewes night, then next year. Any year can
+    be predicted; the calendar itself only looks 18 months ahead."""
     cat = catalogue()
-    year = year or default_year(cat, date.today())
-    found = predictions(cat, year)
+    found = [p for year in years_or_default(years, cat) for p in predictions(cat, year)]
     if as_json:
         click.echo(json.dumps([{"key": p.key, "society": p.society.id, "name": p.society.name,
                                 "date": p.day.isoformat(), "percent": p.percent, "confirmed": p.confirmed,
@@ -265,27 +293,29 @@ def confirm_cmd(society: str, day: date, source: str, url: str | None, checked: 
 
 
 @cli.command("todo", examples=[("bonfire todo", "the season being predicted"),
-                                ("bonfire todo 2028", "a later season")])
-@click.argument("year", type=int, required=False)
-def todo_cmd(year: int | None) -> None:
+                                ("bonfire todo 2028", "a later season"),
+                                ("bonfire todo 2027-2029", "a few seasons ahead")])
+@click.argument("years", type=Years(), required=False)
+def todo_cmd(years: list[int] | None) -> None:
     """Events still only predicted, soonest first, with where to look.
 
-    YEAR defaults to the season being predicted."""
+    YEARS is a year (2028) or a span (2027-2029), one section each. It
+    defaults to the season being predicted."""
     cat = catalogue()
     today = date.today()
-    year = year or default_year(cat, today)
-    items = research.todo(cat, year, today)
-    click.echo()
-    click.echo(heading(f"Still to confirm for {year}") + dim(f"  {plural(len(items), 'event')}, soonest first"))
-    if items:
+    for year in years_or_default(years, cat):
+        items = research.todo(cat, year, today)
         click.echo()
-        rows = []
-        for p in items:
-            checked = research.last_checked(p.society)
-            links = "  ".join(p.society.links.values())
-            rows.append([f"{p.day:%a %d %b}", p.title, percent_cell(p.percent),
-                         f"{checked:%d %b %Y}" if checked else ("never", {"dim": True}), (links, {"dim": True})])
-        click.echo(table(rows, ["Date", "Event", "Sure", "Checked", "Where to look"]))
+        click.echo(heading(f"Still to confirm for {year}") + dim(f"  {plural(len(items), 'event')}, soonest first"))
+        if items:
+            click.echo()
+            rows = []
+            for p in items:
+                checked = research.last_checked(p.society)
+                links = "  ".join(p.society.links.values())
+                rows.append([f"{p.day:%a %d %b}", p.title, percent_cell(p.percent),
+                             f"{checked:%d %b %Y}" if checked else ("never", {"dim": True}), (links, {"dim": True})])
+            click.echo(table(rows, ["Date", "Event", "Sure", "Checked", "Where to look"]))
     click.echo()
 
 

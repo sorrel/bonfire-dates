@@ -38,8 +38,8 @@ dependency, British English, feature branches only, designed terminal output.
 `societies.toml` + `confirmed.toml` → `load` (`Catalogue`, all problems
 collected) → `rules` (`date_for`, `rule_date`, `describe`) → `confidence`
 (`rate`: percentages, formula in its docstring) → `predict` (`Prediction`:
-title, notes, all-day or timed) → `sync` (state hash per event, horizon this
-year and next, but only known dates for this year once Lewes night has passed;
+title, notes, all-day or timed) → `sync` (state hash per event, horizon the next
+18 months, but only known dates for this year once Lewes night has passed;
 past events untouched) → `calendar_app` + `calendar.js`
 (EventKit, copied from albion-tickets, plus all-day). `research` handles
 `confirm` (appends text to `confirmed.toml`), local evidence and `todo`.

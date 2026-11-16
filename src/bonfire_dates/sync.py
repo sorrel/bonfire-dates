@@ -1,7 +1,7 @@
 """Bringing the Bonfire calendar in line with the predictions.
 
-The horizon is the rest of this year and all of next; after Lewes night this
-year keeps only known dates (see `predict.prediction_year`). Events dated before
+The horizon is the next 18 months (`horizon`), whatever the year; after Lewes
+night this year keeps only known dates (see `predict.prediction_year`). Events dated before
 today are never written or removed. Only successful writes are recorded, so a
 failure is simply retried on the next sync.
 
@@ -15,6 +15,7 @@ import hashlib
 import json
 from collections.abc import Callable
 from dataclasses import dataclass, field
+from calendar import monthrange
 from datetime import date
 from pathlib import Path
 
@@ -98,13 +99,25 @@ def reconcile(state: store.State, live: list[Found], today: date) -> Repairs:
     return fixes
 
 
+HORIZON_MONTHS = 18
+
+
+def horizon(today: date) -> date:
+    """The first day past the calendar's reach: 18 months on (the month's last
+    day when that month is shorter)."""
+    months = today.month - 1 + HORIZON_MONTHS
+    year, month = today.year + months // 12, months % 12 + 1
+    return date(year, month, min(today.day, monthrange(year, month)[1]))
+
+
 def wanted(cat: Catalogue, today: date) -> dict[str, Prediction]:
-    """Everything still to come this year and next; once this year's season is
+    """Everything from today up to the horizon; once this year's season is
     decided (after Lewes night), only this year's known dates."""
     decided = prediction_year(cat, today) > today.year
-    found = [p for year in (today.year, today.year + 1) for p in predictions(cat, year)
+    end = horizon(today)
+    found = [p for year in range(today.year, end.year + 1) for p in predictions(cat, year)
              if not (decided and year == today.year and not p.confirmed)]
-    return {p.key: p for p in found if p.day >= today}
+    return {p.key: p for p in found if today <= p.day < end}
 
 
 def plan(cat: Catalogue, state: store.State, today: date) -> SyncPlan:
@@ -151,7 +164,7 @@ def run(cat: Catalogue, cal: Calendar, state_path: Path, today: date, dry_run: b
     state = store.load(state_path)
     want = wanted(cat, today)
     try:
-        fixes = reconcile(state, cal.read(today, date(today.year + 2, 1, 1)), today)
+        fixes = reconcile(state, cal.read(today, date(horizon(today).year + 1, 1, 1)), today)
         read_error = None
     except CalendarError as e:
         fixes, read_error = Repairs(), str(e)

@@ -202,7 +202,8 @@ any that look wrong (with `confidence = NN` and a `why`).
   does for non-league grounds).
 - Notes: confidence, the rule in words, the evidence, and "predicted, not
   published" until confirmed.
-- **Horizon:** `sync` covers the rest of this year and all of next. Once this
+- **Horizon:** `sync` covers the next 18 months (`sync.horizon`), whatever
+  the year; `predict` and `todo` take any year or span. Once this
   year's Lewes night has passed, the season counts as decided: this year keeps
   only known dates, and predictions are for next year (`prediction_year`). It
   never edits or removes past events.

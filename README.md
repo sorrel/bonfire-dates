@@ -29,9 +29,9 @@ then the rule and the evidence behind it.
 
 | Command | What it does |
 |---|---|
-| `bonfire predict [YEAR] [-v] [--json]` | The season month by month, with how sure each date is |
-| `bonfire sync [--dry-run]` | Bring the Bonfire calendar in line (the rest of this year and next; after Lewes night, this year shows only known dates). Reads the calendar back first: restores an event deleted by hand, removes duplicates, and lists events it didn't make without touching them. Lists each event added, restored, moved (with its old date), updated (with its old percentage) or removed, then a tally, what the calendar holds and the next event. Exits 1 if any write failed; those retry next time |
-| `bonfire todo [YEAR]` | What's still only predicted, with each society's links |
+| `bonfire predict [YEARS] [-v] [--json]` | The season month by month, with how sure each date is. YEARS is a year (`2028`) or a span (`2027-2029`) |
+| `bonfire sync [--dry-run]` | Bring the Bonfire calendar in line (the next 18 months; after Lewes night, this year shows only known dates). Reads the calendar back first: restores an event deleted by hand, removes duplicates, and lists events it didn't make without touching them. Lists each event added, restored, moved (with its old date), updated (with its old percentage) or removed, then a tally, what the calendar holds and the next event. Exits 1 if any write failed; those retry next time |
+| `bonfire todo [YEARS]` | What's still only predicted, with each society's links; `2027-2029` looks a few seasons ahead |
 | `bonfire confirm ID DATE [--source …] [--url …]` | Record a date once it's known |
 | `bonfire evidence ID FILE` | Keep a poster or screenshot locally (never published) |
 | `bonfire sources ID` | The links and evidence behind a society's dates |
