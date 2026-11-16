@@ -35,8 +35,8 @@ def test_hawkhurst_has_no_2027_date():
 
 
 def test_every_active_entry_is_in_the_appendix_or_ruleless():
-    covered = {sid for sid, _, _ in APPENDIX_2027} | {"hawkhurst"}
-    active = {s.id for s in CAT.societies.values() if s.status == "active"}
+    covered = {sid for sid, _, _ in APPENDIX_2027} | {"hawkhurst", "vines-cross"}
+    active = {s.id for s in CAT.societies.values() if s.status == "active" and s.kind != "visiting"}
     assert active == covered
 
 
@@ -76,3 +76,8 @@ def test_doubtful_rules_are_guesses():
 def test_lindfield_is_5_november_or_the_saturday_before():
     assert date_for(CAT, "lindfield", 2027) == date(2027, 11, 5)
     assert date_for(CAT, "lindfield", 2028) == date(2028, 11, 4)  # the 5th is a Sunday
+
+
+def test_who_the_devil_is_listed_with_no_event():
+    assert CAT.societies["who-the-devil"].kind == "visiting"
+    assert date_for(CAT, "who-the-devil", 2027) is None

@@ -12,6 +12,7 @@ from pathlib import Path
 
 from .model import (DIRECTIONS, FIXED_ANCHORS, KINDS, SOURCES, STATUSES, WEEKDAYS, Catalogue, Evidence,
                     Known, Rule, Society)
+from .rules import known_clash
 
 SOCIETY_KEYS = {"name", "kind", "status", "place", "start", "rule", "known", "of", "links", "emoji",
                 "confidence", "why", "rate_on_evidence", "note", "searched"}
@@ -155,6 +156,9 @@ def _society(sid: str, raw, fname: str, out: list[str]) -> Society | None:
     if conf is not None and not (_is_int(conf) and 1 <= conf <= 100):
         out.append(f"{where}: confidence must be a whole number from 1 to 100")
         conf = None
+    if raw.get("kind") == "visiting" and (rule or known):
+        out.append(f"{where}: a visiting society has no event of its own, so no rule or known dates")
+        rule, known = None, ()
     searched = raw.get("searched")
     if searched is not None and not isinstance(searched, date):
         out.append(f"{where}: searched must be a date, like 2026-11-16")
@@ -166,7 +170,8 @@ def _society(sid: str, raw, fname: str, out: list[str]) -> Society | None:
 
 
 def problems(cat: Catalogue, fname: str = "societies.toml") -> list[str]:
-    """Checks that need the whole catalogue: anchors and `of` that name nothing, and anchor cycles."""
+    """Checks that need the whole catalogue: anchors and `of` that name nothing,
+    anchor cycles, and a known badge night not before its society's known night."""
     out: list[str] = []
     ids = cat.societies
     for s in ids.values():
@@ -175,6 +180,12 @@ def problems(cat: Catalogue, fname: str = "societies.toml") -> list[str]:
             out.append(f"{fname}: [{s.id}] anchor {a!r} is not a society or a fixed anchor")
         if s.of and s.of not in ids:
             out.append(f"{fname}: [{s.id}] of {s.of!r} is not a society")
+        elif s.of and s.kind == "badge":
+            for year in sorted({k.date.year for k in s.known}):
+                mine = s.known_in(year).date
+                if clash := known_clash(cat, s.id, mine):
+                    out.append(f"{fname}: [{s.id}] {year}: a badge night must come before its society's "
+                               f"night ({mine:%d %b} is not before {clash[1]:%d %b})")
     seen: set[str] = set()
     for start in ids:
         path: list[str] = []

@@ -5,9 +5,9 @@ from datetime import date, datetime, time, timedelta
 from . import config
 from .confidence import Rating, rate
 from .model import Catalogue, Known, Society
-from .rules import date_for, describe
+from .rules import date_for, describe, out_of_order
 
-EMOJI = {"night": "🔥", "badge": "🦡", "other": "🔥"}
+EMOJI = {"night": "🔥", "badge": "🦡", "other": "🔥", "visiting": "🥁"}
 EVENT_LENGTH = timedelta(hours=3)
 
 
@@ -74,7 +74,7 @@ class Prediction:
 def predict_one(cat: Catalogue, society_id: str, year: int) -> Prediction | None:
     s = cat.societies[society_id]
     day = date_for(cat, society_id, year)
-    if s.status != "active" or day is None:
+    if s.status != "active" or day is None or out_of_order(cat, society_id, year):
         return None
     r = rate(cat, society_id, year)
     return Prediction(f"{s.id}:{year}", s, day, r.percent, r.confirmed, r, describe(cat, s.rule))

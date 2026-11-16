@@ -1,7 +1,7 @@
 from datetime import date
 
 from bonfire_dates.model import Catalogue, Evidence, Known, Rule, Society
-from bonfire_dates.rules import date_for, describe, rule_date
+from bonfire_dates.rules import date_for, describe, out_of_order, rule_date
 
 
 def cat(*societies: Society) -> Catalogue:
@@ -93,3 +93,41 @@ def test_later_entry_of_equal_trust_wins():
                               Known(date(2027, 11, 6), Evidence("verified")),
                               Known(date(2027, 11, 13), Evidence("guide"))])
     assert s.known_in(2027).date == date(2027, 11, 6)
+
+
+# A badge night always comes before its society's night in the same year,
+# though not necessarily just before. Whichever date is only predicted gives way.
+def _pair(night_rule, badge_rule, night_known=(), badge_known=()):
+    night = Society("n", "N", "night", "active", rule=night_rule,
+                    known=tuple(Known(d, Evidence("society")) for d in night_known))
+    badge = Society("nb", "N badge night", "badge", "active", rule=badge_rule, of="n",
+                    known=tuple(Known(d, Evidence("society")) for d in badge_known))
+    return cat(night, badge)
+
+
+def test_badge_before_its_night_is_in_order():
+    c = _pair(Rule(month=10, weekday="sat", nth=1), Rule(month=4, weekday="fri", nth=1))
+    assert out_of_order(c, "n", 2027) is None and out_of_order(c, "nb", 2027) is None
+
+
+def test_predicted_badge_on_or_after_its_night_gives_way():
+    c = _pair(Rule(month=10, weekday="sat", nth=1), Rule(month=10, weekday="sat", nth=2))
+    assert out_of_order(c, "nb", 2027) == ("n", date(2027, 10, 2))
+    assert out_of_order(c, "n", 2027) is None
+
+
+def test_predicted_night_gives_way_to_a_known_later_badge():
+    c = _pair(Rule(month=10, weekday="sat", nth=1), None, badge_known=[date(2027, 10, 9)])
+    assert out_of_order(c, "n", 2027) == ("nb", date(2027, 10, 9))
+    assert out_of_order(c, "nb", 2027) is None
+
+
+def test_known_night_beats_predicted_badge_on_the_same_day():
+    c = _pair(None, Rule(month=10, weekday="sat", nth=1), night_known=[date(2027, 10, 2)])
+    assert out_of_order(c, "nb", 2027) == ("n", date(2027, 10, 2))
+
+
+def test_other_years_and_kinds_are_left_alone():
+    c = _pair(Rule(month=10, weekday="sat", nth=1), None, badge_known=[date(2026, 12, 1)])
+    assert out_of_order(c, "n", 2027) is None
+    assert out_of_order(ALL, "lewes", 2027) is None

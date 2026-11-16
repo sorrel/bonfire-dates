@@ -58,3 +58,12 @@ def test_unknown_and_ruleless_societies_have_no_prediction():
     from datetime import date
     known = with_known(CAT, "hawkhurst", date(2030, 11, 8), "society")
     assert "hawkhurst" in {p.society.id for p in predictions(known, 2030)}  # a known date, no rule
+
+
+def test_predicted_badge_after_its_night_is_left_out():
+    from datetime import date
+
+    from tests.helpers import with_known
+    cat = with_known(CAT, "chiddingly", date(2030, 8, 10), "society")  # before the badge's 3rd Sat Aug
+    ids = {p.society.id for p in predictions(cat, 2030)}
+    assert "chiddingly" in ids and "chiddingly-badge" not in ids

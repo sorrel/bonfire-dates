@@ -106,7 +106,7 @@ def test_check_reports_problems_exit_1(confirmed):
     assert r.exit_code == 1 and "nobody" in r.output
 
 
-def test_list_shows_unknown_dimmed_when_tty(confirmed):
+def test_list_shows_inactive_dimmed_when_tty(confirmed):
     r = run("list", color=True)
     assert r.exit_code == 0
     line = next(x for x in r.output.splitlines() if "Cuckfield" in x)
@@ -254,3 +254,30 @@ def test_sources_labels_line_up_and_never_touch_their_values(confirmed):
     labelled = [line for line in out.splitlines() if line.split()[:1] in (["Rule"], ["Website"], ["Searched"])]
     assert len(labelled) == 3
     assert len({line.index(line.split()[1]) for line in labelled}) == 1  # values share one column
+
+
+def test_list_shows_visiting_society(confirmed):
+    r = run("list")
+    line = next(x for x in r.output.splitlines() if "Who the Devil" in x)
+    assert "who-the-devil" in line and "no event of its own" in line
+
+
+def test_confirm_refuses_a_visiting_society(confirmed):
+    before = confirmed.read_text() if confirmed.exists() else ""
+    r = run("confirm", "who-the-devil", "2027-11-05", "--source", "society")
+    assert r.exit_code != 0 and "no event of its own" in r.output
+    assert (confirmed.read_text() if confirmed.exists() else "") == before
+
+
+def test_confirm_refuses_a_badge_date_after_its_night(confirmed):
+    run("confirm", "chiddingly", "2030-11-23", "--source", "society")
+    before = confirmed.read_text()
+    r = run("confirm", "chiddingly-badge", "2030-11-30", "--source", "society")
+    assert r.exit_code != 0 and "before" in r.output
+    assert confirmed.read_text() == before
+
+
+def test_confirm_refuses_a_night_date_before_its_badge(confirmed):
+    run("confirm", "chiddingly-badge", "2030-08-17", "--source", "society")
+    r = run("confirm", "chiddingly", "2030-08-17", "--source", "society")
+    assert r.exit_code != 0 and "before" in r.output
