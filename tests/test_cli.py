@@ -300,3 +300,20 @@ def test_todo_takes_a_span_of_years(confirmed):
 def test_a_bad_span_of_years_is_refused(confirmed, bad):
     r = run("todo", bad)
     assert r.exit_code == 2 and "YEARS" in r.output
+
+
+def test_confirm_refuses_a_public_fifth_of_november_away_from_the_rule(confirmed):
+    before = confirmed.read_bytes()
+    r = run("confirm", "crowborough", "2027-11-05", "--source", "guide", "--url", "https://example.org/p")
+    assert r.exit_code == 1 and "--own-event" in r.output
+    assert confirmed.read_bytes() == before
+
+
+def test_confirm_own_event_overrides_the_fifth_check(confirmed):
+    r = run("confirm", "crowborough", "2027-11-05", "--source", "society", "--own-event")
+    assert r.exit_code == 0, r.output
+
+
+def test_confirm_fifth_of_november_is_fine_where_the_rule_is_near_it(confirmed):
+    r = run("confirm", "lewes", "2027-11-05", "--source", "society", "--url", "https://example.org/p")
+    assert r.exit_code == 0, r.output

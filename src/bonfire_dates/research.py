@@ -9,6 +9,7 @@ import click
 
 from .model import Catalogue, Society
 from .predict import Prediction, predictions
+from .rules import rule_date
 
 
 def _toml_string(text: str) -> str:
@@ -65,3 +66,19 @@ def last_checked(s: Society) -> date | None:
 def todo(cat: Catalogue, year: int, today: date) -> list[Prediction]:
     """The year's events still only predicted, from today on, soonest first."""
     return [p for p in predictions(cat, year) if not p.confirmed and p.day >= today]
+
+
+FIFTH_LEEWAY = 3  # days: a rule this close to 5 November celebrates on or near it
+
+
+def fifth_suspect(cat: Catalogue, society_id: str, day: date) -> date | None:
+    """The society's rule date, when `day` is 5 November and the rule puts its
+    night well away from it. Councils, schools and venues hold fireworks on the
+    5th in towns whose society celebrates on another night, and listings mix
+    them up. None when the date is not suspect (or the society has no rule)."""
+    if (day.month, day.day) != (11, 5):
+        return None
+    ruled = rule_date(cat, society_id, day.year)
+    if ruled is None or abs((ruled - day).days) <= FIFTH_LEEWAY:
+        return None
+    return ruled

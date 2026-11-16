@@ -44,7 +44,10 @@ Record by the README's rules, strictly:
   run fireworks nights in the same towns (often on 5 November), and guides and
   news stories mix them up with the society's procession. A date for an event
   run by someone else is never recorded against the society. If you can't tell
-  who runs it, list it for the user to judge.
+  who runs it, list it for the user to judge. This holds in every town whose
+  society celebrates away from the 5th: `confirm` refuses a public 5 November
+  date for such a society. Report that refusal; don't add `--own-event` unless
+  the society's own page or poster shows the event is theirs.
 - **A disagreement** with a date already held is not recorded. List it for the
   user to judge (postponement, cancellation, typo).
 - **A rule that looks wrong** (a new date it misses) is reported, not changed.
