@@ -242,3 +242,15 @@ def test_list_is_compact(confirmed):
     assert max(width(line) for line in out.splitlines()) <= 150  # was 157, with a Kind column
     assert "🦡 Firle badge night" in out and "unknown" in out
     assert "Kind" not in out
+
+
+def test_sources_says_when_sources_were_last_searched(confirmed):
+    out = run("sources", "crowborough").output
+    assert "Searched" in out
+
+
+def test_sources_labels_line_up_and_never_touch_their_values(confirmed):
+    out = run("sources", "fletching").output
+    labelled = [line for line in out.splitlines() if line.split()[:1] in (["Rule"], ["Website"], ["Searched"])]
+    assert len(labelled) == 3
+    assert len({line.index(line.split()[1]) for line in labelled}) == 1  # values share one column

@@ -59,6 +59,7 @@ class Society:
     why: str | None = None
     rate_on_evidence: bool = False
     note: str | None = None
+    searched: date | None = None  # the last day new sources were looked for
 
     def known_in(self, year: int) -> Known | None:
         """The year's known date: the best-trusted one, and the latest recorded among

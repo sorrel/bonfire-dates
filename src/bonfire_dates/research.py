@@ -53,8 +53,10 @@ def resolve_id(cat: Catalogue, text: str) -> str:
 
 
 def last_checked(s: Society) -> date | None:
-    """The most recent day any of the society's evidence was checked."""
+    """The most recent day any of the society's evidence was checked, or its sources searched for."""
     days = [k.evidence.checked for k in s.known if k.evidence.checked]
+    if s.searched:
+        days.append(s.searched)
     if s.rule and s.rule.evidence and s.rule.evidence.checked:
         days.append(s.rule.evidence.checked)
     return max(days, default=None)

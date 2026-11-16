@@ -7,6 +7,8 @@
 # Rules: { month, weekday, nth } (nth = -1 for last); { month, day, sunday };
 # or { anchor, weekday?, direction?, weeks?, days? } where anchor is "nov5",
 # "remembrance-sunday" or another society's id. See the README.
+# searched is the last day new sources were looked for (see the README's
+# "Looking for sources"); links are added only once seen live and the society's own.
 
 [defaults]
 badge_confidence = 10  # few badge nights are fixed far ahead
@@ -29,6 +31,7 @@ kind = "night"
 status = "active"
 place = "Uckfield, East Sussex"
 links = { website = "https://uckfieldcarnival.co.uk" }
+searched = 2026-11-16
 rule = { month = 9, weekday = "sat", nth = 1 }
 note = "Uckfield Bonfire & Carnival Society: the season's opening night"
 
@@ -37,6 +40,7 @@ name = "Crowborough"
 kind = "night"
 status = "active"
 place = "Crowborough, East Sussex"
+searched = 2026-11-16
 rule = { month = 9, weekday = "sat", nth = 2 }
 note = "Crowborough Bonfire & Carnival Society"
 
@@ -45,6 +49,8 @@ name = "Fletching"
 kind = "night"
 status = "active"
 place = "Fletching, East Sussex"
+links = { website = "https://sites.google.com/view/fletchingbonfiresociety/home" }
+searched = 2026-11-16
 rule = { month = 9, weekday = "sat", nth = 2, guess = true }
 known = [
   { date = 2026-09-12, source = "guide", url = "https://www.thebestof.co.uk/local/eastbourne/pevensey/community-hub/blog/view/east-sussex-bonfire-processions--dates-and-locations/", checked = 2026-11-15, note = "its website may give Sunday 13 September" },
@@ -55,6 +61,8 @@ name = "Mayfield"
 kind = "night"
 status = "active"
 place = "Mayfield, East Sussex"
+links = { website = "https://mayfieldbonfire.co.uk" }
+searched = 2026-11-16
 rule = { month = 9, weekday = "sat", nth = 3 }
 note = "Wikipedia's 'nearest Saturday to 24 September' does not fit 2026"
 
@@ -64,6 +72,7 @@ kind = "night"
 status = "active"
 place = "Buxted, East Sussex"
 links = { website = "https://buxtedbonfiresociety.co.uk" }
+searched = 2026-11-16
 rule = { month = 9, weekday = "sat", nth = -1, source = "society", url = "https://buxtedbonfiresociety.co.uk", checked = 2026-11-15, note = "always the last Saturday of September" }
 known = [
   { date = 2026-09-26, source = "guide", url = "https://www.thebestof.co.uk/local/eastbourne/pevensey/community-hub/blog/view/east-sussex-bonfire-processions--dates-and-locations/", checked = 2026-11-15 },
@@ -74,6 +83,7 @@ name = "Burgess Hill"
 kind = "night"
 status = "active"
 place = "Burgess Hill, West Sussex"
+searched = 2026-11-16
 rule = { month = 9, weekday = "sat", nth = -1 }
 
 [eastbourne]
@@ -82,6 +92,7 @@ kind = "night"
 status = "active"
 place = "Eastbourne, East Sussex"
 links = { website = "https://www.eastbournebonfiresociety.com" }
+searched = 2026-11-16
 rule = { month = 10, weekday = "sat", nth = 1 }
 
 [northiam]
@@ -90,6 +101,7 @@ kind = "night"
 status = "active"
 place = "Northiam, East Sussex"
 links = { website = "https://www.northiambonfiresociety.org.uk" }
+searched = 2026-11-16
 rule = { month = 10, weekday = "sat", nth = 1 }
 known = [
   { date = 2026-10-03, source = "society", url = "https://www.northiambonfiresociety.org.uk/other-sussex-bonfire-events", checked = 2026-11-15 },
@@ -100,6 +112,7 @@ name = "Rotherfield & Mark Cross"
 kind = "night"
 status = "active"
 place = "Rotherfield, East Sussex"
+searched = 2026-11-16
 rule = { month = 10, weekday = "sat", nth = 1 }
 
 [lewes-fancy-dress]
@@ -116,6 +129,7 @@ kind = "night"
 status = "active"
 place = "Heathfield, East Sussex"
 links = { website = "https://heathfieldbonfiresociety.co.uk" }
+searched = 2026-11-16
 rule = { month = 10, weekday = "sat", nth = 2 }
 
 [nevill-badge]
@@ -136,6 +150,7 @@ status = "active"
 place = "Hastings, East Sussex"
 start = "17:30"
 links = { website = "https://www.hbbs.info" }
+searched = 2026-11-16
 rule = { month = 10, weekday = "sat", nth = 3 }
 note = "held in Hastings Week, which marks the Battle of Hastings"
 
@@ -144,6 +159,7 @@ name = "Hailsham"
 kind = "night"
 status = "active"
 place = "Hailsham, East Sussex"
+searched = 2026-11-16
 rule = { month = 10, weekday = "sat", nth = 3, guess = true }
 known = [
   { date = 2026-10-17, source = "guides", url = "https://www.thebestof.co.uk/local/eastbourne/pevensey/community-hub/blog/view/east-sussex-bonfire-processions--dates-and-locations/", checked = 2026-11-15 },
@@ -154,6 +170,8 @@ name = "Seaford"
 kind = "night"
 status = "active"
 place = "Seaford, East Sussex"
+links = { website = "https://www.seafordbonfiresociety.co.uk" }
+searched = 2026-11-16
 rule = { month = 10, weekday = "sat", nth = 3, guess = true }
 known = [
   { date = 2026-10-17, source = "guide", checked = 2026-11-15 },
@@ -164,6 +182,7 @@ name = "East Grinstead"
 kind = "night"
 status = "active"
 place = "East Grinstead, West Sussex"
+searched = 2026-11-16
 rule = { month = 10, weekday = "sat", nth = 3, guess = true }
 known = [
   { date = 2026-10-17, source = "guide", checked = 2026-11-15 },
@@ -199,6 +218,7 @@ kind = "night"
 status = "active"
 place = "Firle, East Sussex"
 links = { website = "https://www.firlebonfire.co.uk" }
+searched = 2026-11-16
 rule = { anchor = "newick", weeks = -1 }
 note = "not 'the last Saturday of October': the two first differ in 2032"
 
@@ -208,6 +228,7 @@ kind = "night"
 status = "active"
 place = "Littlehampton, West Sussex"
 links = { website = "https://littlehamptonbonfiresociety.co.uk" }
+searched = 2026-11-16
 rule = { month = 10, weekday = "sat", nth = 4, guess = true }
 
 [ninfield]
@@ -215,6 +236,8 @@ name = "Ninfield"
 kind = "night"
 status = "active"
 place = "Ninfield, East Sussex"
+links = { website = "https://www.ninfieldbonfire.co.uk" }
+searched = 2026-11-16
 rule = { month = 10, weekday = "sat", nth = 4, guess = true }
 known = [
   { date = 2026-10-24, source = "guide", url = "https://www.northiambonfiresociety.org.uk/other-sussex-bonfire-events", checked = 2026-11-15 },
@@ -226,6 +249,7 @@ kind = "night"
 status = "active"
 place = "Lewes, East Sussex"
 links = { website = "https://njbs.co.uk" }
+searched = 2026-11-16
 rule = { anchor = "nov5", weekday = "sat", direction = "before", weeks = -1, guess = true }
 note = "Nevill Juvenile Bonfire Society; its night is earlier than 5 November. One old guide says about two Saturdays before"
 
@@ -234,6 +258,8 @@ name = "Isfield & Little Horsted"
 kind = "night"
 status = "active"
 place = "Isfield, East Sussex"
+links = { website = "https://isfieldhorstedbonfire.com" }
+searched = 2026-11-16
 rule = { month = 10, weekday = "fri", nth = -1, note = "always a Friday; fits 2024 to 2026, when Friday before Newick missed 2024" }
 
 [newick]
@@ -242,6 +268,7 @@ kind = "night"
 status = "active"
 place = "Newick, East Sussex"
 links = { website = "https://newickbonfire.com" }
+searched = 2026-11-16
 rule = { anchor = "nov5", weekday = "sat", direction = "before" }
 
 [ewhurst-staplecross]
@@ -250,6 +277,7 @@ kind = "night"
 status = "active"
 place = "Staplecross, East Sussex"
 links = { website = "https://esbs.org.uk" }
+searched = 2026-11-16
 rule = { month = 10, weekday = "sat", nth = -1 }
 known = [
   { date = 2026-10-31, source = "guides", url = "https://www.northiambonfiresociety.org.uk/other-sussex-bonfire-events", checked = 2026-11-15 },
@@ -269,6 +297,7 @@ name = "Lewes"
 kind = "night"
 status = "active"
 place = "Lewes, East Sussex"
+searched = 2026-11-16
 confidence = 100
 why = "fixed by tradition"
 rule = { month = 11, day = 5, sunday = "sat-before" }
@@ -279,6 +308,8 @@ name = "Battle"
 kind = "night"
 status = "active"
 place = "Battle, East Sussex"
+links = { website = "https://www.battelbonfire.co.uk" }
+searched = 2026-11-16
 rule = { anchor = "nov5", weekday = "sat", direction = "after" }
 note = "Battel Bonfire Boyes"
 
@@ -287,6 +318,7 @@ name = "Chailey"
 kind = "night"
 status = "active"
 place = "Chailey, East Sussex"
+searched = 2026-11-16
 rule = { anchor = "nov5", weekday = "sat", direction = "after", guess = true }
 known = [
   { date = 2026-11-07, source = "guide", url = "https://www.thebestof.co.uk/local/eastbourne/pevensey/community-hub/blog/view/east-sussex-bonfire-processions--dates-and-locations/", checked = 2026-11-15 },
@@ -297,6 +329,7 @@ name = "Hawkhurst Gang"
 kind = "night"
 status = "active"
 place = "Hawkhurst, Kent"
+searched = 2026-11-16
 note = "a Friday in 2026; one website wrongly listed it as dissolved in 2024"
 
 [east-hoathly]
@@ -304,6 +337,7 @@ name = "East Hoathly & Halland"
 kind = "night"
 status = "active"
 place = "East Hoathly, East Sussex"
+searched = 2026-11-16
 rule = { anchor = "remembrance-sunday", weekday = "sat", direction = "before", source = "wiki", url = "https://en.wikipedia.org/wiki/Sussex_Bonfire_Societies", checked = 2026-11-15, note = "the day before Remembrance Sunday" }
 
 [rye]
@@ -311,6 +345,8 @@ name = "Rye & District"
 kind = "night"
 status = "active"
 place = "Rye, East Sussex"
+links = { website = "https://www.ryebonfire.co.uk" }
+searched = 2026-11-16
 rule = { anchor = "battle", weeks = 1 }
 
 [south-heighton]
@@ -319,6 +355,7 @@ kind = "night"
 status = "active"
 place = "South Heighton, East Sussex"
 links = { website = "https://southheighton.org/bonfire-society-homepage" }
+searched = 2026-11-16
 rule = { month = 11, weekday = "sat", nth = 2, source = "society", url = "https://southheighton.org/bonfire-society-homepage", checked = 2026-11-15, guess = true, note = "the second Saturday in November, by its own site; still doubtful" }
 
 [glynde-membership]
@@ -353,6 +390,7 @@ kind = "night"
 status = "active"
 place = "Barcombe, East Sussex"
 links = { website = "https://barcombebonfire.co.uk" }
+searched = 2026-11-16
 rule = { month = 11, weekday = "sat", nth = 3 }
 note = "'a week after Rye' fits 2025 and 2026 but not 2024; both rules give 20 November 2027"
 
@@ -361,6 +399,8 @@ name = "Robertsbridge"
 kind = "night"
 status = "active"
 place = "Robertsbridge, East Sussex"
+links = { website = "https://robertsbridgebonfiresociety.com" }
+searched = 2026-11-16
 rule = { month = 11, weekday = "sat", nth = 3, guess = true }
 known = [
   { date = 2026-11-21, source = "guides", url = "https://www.visit1066country.com/whats-on/festivals/bonfires-and-fireworks", checked = 2026-11-15 },
@@ -372,6 +412,7 @@ kind = "night"
 status = "active"
 place = "Chiddingly, East Sussex"
 links = { website = "https://www.chiddinglybonfire.co.uk" }
+searched = 2026-11-16
 rule = { month = 11, weekday = "sat", nth = 4, source = "wiki", url = "https://en.wikipedia.org/wiki/Sussex_Bonfire_Societies", checked = 2026-11-15 }
 
 [cowbeech]
@@ -397,6 +438,7 @@ name = "Lindfield"
 kind = "night"
 status = "active"
 links = { website = "https://lindfieldbonfiresociety.co.uk" }
+searched = 2026-11-16
 place = "Lindfield, West Sussex"
 confidence = 95
 why = "fixed by tradition"
