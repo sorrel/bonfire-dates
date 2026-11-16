@@ -8,7 +8,7 @@ import click
 
 # The order a season is worked in, not the alphabet.
 SECTIONS = [
-    ("See the season", ["predict", "todo", "list"]),
+    ("See the season", ["diary", "predict", "todo", "list"]),
     ("Keep the calendar", ["sync"]),
     ("Record news", ["confirm", "sources", "evidence"]),
     ("Look after the data", ["check"]),

@@ -29,6 +29,7 @@ then the rule and the evidence behind it.
 
 | Command | What it does |
 |---|---|
+| `bonfire diary [--going] [--json]` | Every event ahead from today, as far as the calendar looks, month by month with how far off each is. Events you're going to are bold, starred and show your hours, and the next one is named at the top. `--going` shows only those |
 | `bonfire predict [YEARS] [-v] [--json]` | The season month by month, with how sure each date is. YEARS is a year (`2028`) or a span (`2027-2029`) |
 | `bonfire sync [--dry-run]` | Bring the Bonfire calendar in line (the next 18 months; after Lewes night, this year shows only known dates). Reads the calendar back first: restores an event deleted by hand, removes duplicates, and lists events it didn't make without touching them. Lists each event added, restored, moved (with its old date), updated (with its old percentage) or removed, then a tally, what the calendar holds and the next event. Exits 1 if any write failed; those retry next time |
 | `bonfire todo [YEARS]` | What's still only predicted, with each society's links; `2027-2029` looks a few seasons ahead |
@@ -61,7 +62,7 @@ your own copy still rates your well-known societies higher.
 to. In the calendar it then becomes a timed event that evening, 18:00 to 22:30,
 instead of an all-day one; `--from 17:30 --to 23:00` sets your own hours (an
 end before the start runs past midnight). Its notes say "Going 18:00–22:30",
-and `predict` shows the hours. Each mark is for one event in one year, so going
+and `predict` and `diary` show the hours. Each mark is for one event in one year, so going
 is decided season by season. `--remove` takes a mark off and the event goes
 back to all-day. Marks are private, like first-hand dates: they live in
 `data/going.toml`, which is never committed. Run `bonfire sync` afterwards.

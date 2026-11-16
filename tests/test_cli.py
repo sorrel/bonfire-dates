@@ -373,3 +373,65 @@ def test_predict_shows_going_column(confirmed):
     assert "18:00–22:30" in line and "Going" in out
     data = json.loads(run("predict", "2027", "--json").output)
     assert next(d for d in data if d["society"] == "robertsbridge")["going"] == "18:00–22:30"
+
+
+# --- The diary: everything ahead, from today ----------------------------------
+
+@pytest.fixture
+def on_16_nov_2026(monkeypatch):
+    from datetime import date
+    from bonfire_dates import cli as cli_module
+    monkeypatch.setattr(cli_module, "today", lambda: date(2026, 11, 16))
+
+
+def test_diary_runs_from_today_like_the_calendar(confirmed, on_16_nov_2026):
+    from datetime import date
+    from bonfire_dates import sync
+    from bonfire_dates.cli import catalogue
+    r = run("diary")
+    assert r.exit_code == 0, r.output
+    out = r.output
+    assert "Diary" in out and "October 2027" in out and "Firle" in out and "11 months" in out
+    ahead = sync.wanted(catalogue(), date(2026, 11, 16))
+    assert f"{len(ahead)} events" in out
+    assert not [line for line in out.splitlines() if line != line.rstrip()]
+
+
+def test_diary_makes_events_you_are_going_to_stand_out(confirmed, on_16_nov_2026):
+    run("going", "robertsbridge", "2027", "--to", "23:15")
+    out = run("diary").output
+    line = next(l for l in out.splitlines() if "Robertsbridge" in l and "Sat 20 Nov" in l)
+    assert "★" in line and "18:00–23:15" in line  # clear even without colour
+    others = [l for l in out.splitlines() if "Firle" in l]
+    assert others and not any("★" in l for l in others)
+    assert "1 you're going to" in out
+    assert "Next you're going to" in out and "Robertsbridge" in out.split("Next you're going to")[1].splitlines()[0]
+    coloured = run("diary", color=True).output
+    styled = next(l for l in coloured.splitlines() if "Robertsbridge" in l and "Sat 20 Nov" in l)
+    assert "\x1b[1m" in styled  # bold on a terminal
+
+
+def test_diary_going_only(confirmed, on_16_nov_2026):
+    assert "Nothing marked" in run("diary", "--going").output
+    run("going", "robertsbridge", "2027")
+    out = run("diary", "--going").output
+    assert "Robertsbridge" in out and "Firle" not in out
+
+
+def test_diary_json_is_plain(confirmed, on_16_nov_2026):
+    run("going", "robertsbridge", "2027")
+    r = run("diary", "--json", color=True)
+    assert "\x1b" not in r.output
+    rows = json.loads(r.output)
+    assert rows == sorted(rows, key=lambda x: x["date"]) and rows[0]["date"] >= "2026-11-16"
+    rb = next(x for x in rows if x["key"] == "robertsbridge:2027")
+    assert rb["going"] == "18:00–22:30" and rb["in"] == "12 months"
+
+
+def test_diary_columns_line_up_across_months(confirmed, on_16_nov_2026):
+    import re
+    from bonfire_dates.display import width
+    out = run("diary").output
+    rows = [l for l in out.splitlines() if re.match(r"  (Mon|Tue|Wed|Thu|Fri|Sat|Sun) \d\d ", l)]
+    sure = {width(r[:m.start()]) for r in rows if (m := re.search(r"\b\d+%", r))}
+    assert len(rows) > 20 and len(sure) == 1
