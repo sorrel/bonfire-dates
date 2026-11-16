@@ -21,7 +21,7 @@ APPENDIX_2027 = [
     ("battle", 11, 6), ("chailey", 11, 6), ("east-hoathly", 11, 13), ("rye", 11, 13),
     ("south-heighton", 11, 13), ("glynde-membership", 11, 17), ("glynde-parade", 11, 19),
     ("barcombe", 11, 20), ("robertsbridge", 11, 20), ("chiddingly", 11, 27),
-    ("lindfield", 11, 5),
+    ("lindfield", 11, 5), ("uckfield-carols", 12, 12),
 ]
 
 

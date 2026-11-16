@@ -36,6 +36,22 @@ searched = 2026-11-16
 rule = { month = 9, weekday = "sat", nth = 1 }
 note = "Uckfield Bonfire & Carnival Society: the season's opening night"
 
+[uckfield-carols]
+name = "Uckfield Bonfire Carols"
+kind = "other"
+status = "active"
+searched = 2026-11-16
+place = "Belmont Road, Uckfield"
+emoji = "🎄"
+start = "14:00"
+# The second Sunday before Christmas (11 to 17 December): usually the second
+# Sunday of December, but the third when the month starts on a Friday to Sunday.
+rule = { anchor = "nov5", weekday = "sun", direction = "after", weeks = 5 }
+known = [
+  { date = 2024-12-15, source = "guide", url = "https://www.seafordbonfiresociety.co.uk/event-details/uckfield-bonfire-procession-christmas-carols-social-event-members-only", checked = 2026-11-16, note = "another society's listing: 14:00 to 16:00 from Belmont Road" },
+]
+note = "procession and Christmas carols with visiting societies; the second Sunday before Christmas"
+
 [crowborough]
 name = "Crowborough"
 kind = "night"
