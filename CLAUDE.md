@@ -22,6 +22,9 @@ Design: `docs/superpowers/specs/2026-11-15-bonfire-dates-design.md`.
   hand and recorded with its source.
 - A failed calendar write never loses an event: only successes are recorded,
   and failures retry on the next sync. Past events are never touched.
+- Events without the `bonfire-dates:` URL mark were made by hand: sync lists
+  them and never changes them. Sync reads the calendar back (`reconcile`)
+  before planning; if the read fails it trusts `state.json` and says so.
 - Tests never touch the network or the real calendar (`FakeCalendar`, or
   `MacCalendar` with a stand-in command). Check behaviour with `--dry-run`.
 

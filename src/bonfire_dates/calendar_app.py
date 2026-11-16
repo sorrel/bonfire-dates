@@ -13,11 +13,14 @@ import subprocess
 import time
 import uuid
 from dataclasses import dataclass
+from datetime import date, datetime, time as day_start
 from pathlib import Path
 from typing import Protocol
+from urllib.parse import unquote
 
 from .predict import Prediction
 
+MARK = "bonfire-dates:"  # each event's URL: the mark, then its key
 SCRIPT = Path(__file__).with_name("calendar.js")
 BASE_TIMEOUT_S = 150  # covers macOS's one-off "allow calendar access?" prompt
 PER_CHANGE_S = 10
@@ -34,9 +37,19 @@ class Change:
     prediction: Prediction | None = None
 
 
+@dataclass(frozen=True)
+class Found:
+    """An event read back from the calendar. key is None for one this tool didn't make."""
+    uid: str
+    key: str | None
+    day: date
+    title: str
+
+
 class Calendar(Protocol):
     def apply(self, changes: list[Change]) -> list[str | CalendarError]: ...
     def check_ready(self) -> str | None: ...
+    def read(self, start: date, end: date) -> list[Found]: ...  # raises CalendarError
 
 
 class FakeCalendar:
@@ -45,6 +58,8 @@ class FakeCalendar:
         self.calls: list[tuple[str, str]] = []
         self.fail_keys: set[str] = set()  # keys whose writes fail, for tests
         self.ready: str | None = None
+        self.foreign: dict[str, tuple[date, str]] = {}  # events made by hand: uid → (day, title)
+        self.read_error: str | None = None
 
     def apply(self, changes: list[Change]) -> list[str | CalendarError]:
         out: list[str | CalendarError] = []
@@ -67,6 +82,13 @@ class FakeCalendar:
 
     def check_ready(self) -> str | None:
         return self.ready
+
+    def read(self, start: date, end: date) -> list[Found]:
+        if self.read_error:
+            raise CalendarError(self.read_error)
+        found = [Found(u, p.key, p.day, p.title) for u, p in self.events.items()]
+        found += [Found(u, None, d, t) for u, (d, t) in self.foreign.items()]
+        return [f for f in found if start <= f.day < end]
 
 
 def payload(c: Change) -> dict:
@@ -137,10 +159,22 @@ class MacCalendar:
                 out.append(CalendarError(r.get("error") or "no event ID came back"))
         return out
 
-    def check_ready(self) -> str | None:
-        result = self._run([{"op": "check"}])[0]
-        if result.get("ok"):
-            return None
+    def _problem(self, result: dict) -> str:
         if result.get("error") == "missing":
             return f'Calendar "{self.name}" not found: create it in Calendar.app under your iCloud account'
         return f"Calendar not reachable: {result.get('error')}"
+
+    def check_ready(self) -> str | None:
+        result = self._run([{"op": "check"}])[0]
+        return None if result.get("ok") else self._problem(result)
+
+    def read(self, start: date, end: date) -> list[Found]:
+        """Every event in the calendar starting from local midnight on start, up to end."""
+        def secs(d: date) -> int:
+            return int(datetime.combine(d, day_start()).timestamp())
+        result = self._run([{"op": "list", "from": secs(start), "to": secs(end)}])[0]
+        if not result.get("ok"):
+            raise CalendarError(self._problem(result))
+        return [Found(e["uid"], unquote(e["mark"][len(MARK):]) if e.get("mark", "").startswith(MARK) else None,
+                      datetime.fromtimestamp(e["start"]).date(), e.get("title") or "")
+                for e in result.get("events", [])]

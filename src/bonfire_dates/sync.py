@@ -4,15 +4,22 @@ The horizon is the rest of this year and all of next; after Lewes night this
 year keeps only known dates (see `predict.prediction_year`). Events dated before
 today are never written or removed. Only successful writes are recorded, so a
 failure is simply retried on the next sync.
+
+Before planning, the calendar is read back (`reconcile`), so the record in
+state.json is checked against what is really there: an event of ours deleted by
+hand is restored, a duplicate removed, and one the record lost is adopted
+rather than made again. Events without this tool's mark are never touched,
+only listed.
 """
 import hashlib
 import json
+from collections.abc import Callable
 from dataclasses import dataclass, field
 from datetime import date
 from pathlib import Path
 
 from . import store
-from .calendar_app import Calendar, CalendarError, Change, payload
+from .calendar_app import Calendar, CalendarError, Change, Found, payload
 from .model import Catalogue
 from .predict import Prediction, prediction_year, predictions
 
@@ -31,7 +38,7 @@ class SyncPlan:
 @dataclass
 class Item:
     """One change a sync makes (or, in a dry run, would make), for the report."""
-    action: str  # "add", "move", "update" or "remove"
+    action: str  # "add", "restore", "move", "update" or "remove"
     key: str
     day: date
     title: str
@@ -50,6 +57,45 @@ class SyncResult:
     items: list[Item] = field(default_factory=list)
     unchanged: int = 0
     events: list[Prediction] = field(default_factory=list)  # every event the calendar should now hold
+    foreign: list[Found] = field(default_factory=list)  # events this tool didn't make: left alone
+    read_error: str | None = None  # the calendar couldn't be read back; the record was trusted
+
+
+@dataclass
+class Repairs:
+    """What reading the calendar back found, beyond the record."""
+    restored: set[str] = field(default_factory=set)  # keys whose event was deleted by hand
+    adopted: set[str] = field(default_factory=set)  # keys found in the calendar but not in the record
+    duplicates: list[Found] = field(default_factory=list)
+    foreign: list[Found] = field(default_factory=list)
+
+
+def reconcile(state: store.State, live: list[Found], today: date) -> Repairs:
+    """Bring the record (state, changed in place) in line with the events really there."""
+    fixes = Repairs(foreign=sorted((f for f in live if f.key is None), key=lambda f: (f.day, f.title)))
+    ours: dict[str, list[Found]] = {}
+    for f in live:
+        if f.key is not None:
+            ours.setdefault(f.key, []).append(f)
+    there = {f.uid for f in live}
+    for k, e in list(state.events.items()):
+        if date.fromisoformat(e["day"]) < today or e["uid"] in there:
+            continue
+        if k in ours:  # there under another ID: point the record at it and rewrite it
+            state.events[k] = {"uid": ours[k][0].uid, "day": ours[k][0].day.isoformat(), "hash": ""}
+            fixes.adopted.add(k)
+        else:
+            del state.events[k]
+            fixes.restored.add(k)
+    for k, found in ours.items():
+        if k not in state.events:
+            state.events[k] = {"uid": found[0].uid, "day": found[0].day.isoformat(), "hash": ""}
+            fixes.adopted.add(k)
+    recorded = {e["uid"] for e in state.events.values()}
+    for k, found in ours.items():
+        keep = state.events[k]["uid"]
+        fixes.duplicates += [f for f in found if f.uid != keep and f.uid not in recorded]
+    return fixes
 
 
 def wanted(cat: Catalogue, today: date) -> dict[str, Prediction]:
@@ -99,16 +145,32 @@ def _record(p: Prediction, uid: str) -> dict:
     return {"uid": uid, "day": p.day.isoformat(), "hash": fingerprint(p), "title": p.title, "percent": p.percent}
 
 
-def run(cat: Catalogue, cal: Calendar, state_path: Path, today: date, dry_run: bool) -> SyncResult:
+def run(cat: Catalogue, cal: Calendar, state_path: Path, today: date, dry_run: bool,
+        on_start: Callable[[int], None] = lambda n: None) -> SyncResult:
+    """on_start is told how many changes there are, just before they are written."""
     state = store.load(state_path)
     want = wanted(cat, today)
+    try:
+        fixes = reconcile(state, cal.read(today, date(today.year + 2, 1, 1)), today)
+        read_error = None
+    except CalendarError as e:
+        fixes, read_error = Repairs(), str(e)
     todo = plan(cat, state, today)
     # Pair every change with its key, so no outcome is matched back by uid.
     pairs = [(p.key, Change(state.events.get(p.key, {}).get("uid"), p)) for p in todo.upserts]
     items = [_upsert_item(p, state.events.get(p.key)) for p in todo.upserts]
+    for item in items:
+        if item.key in fixes.restored:
+            item.action, item.note = "restore", "was deleted from the calendar"
+        elif item.key in fixes.adopted and item.action == "update":
+            item.note = "not in the record"
     held = {state.events[k]["uid"] for k in want if k in state.events}
     stale: list[str] = []
     removing: set[str] = set()
+    for f in fixes.duplicates:
+        removing.add(f.uid)
+        pairs.append((f.key, Change(f.uid)))
+        items.append(Item("remove", f.key, f.day, f.title, note="duplicate"))
     for k in todo.removals:
         uid = state.events[k]["uid"]
         if uid in held or uid in removing:
@@ -117,11 +179,16 @@ def run(cat: Catalogue, cal: Calendar, state_path: Path, today: date, dry_run: b
             removing.add(uid)
             pairs.append((k, Change(uid)))
             items.append(_removal_item(cat, k, state.events[k]))
+            if k in fixes.adopted:
+                items[-1].note = "not in the record"
     result = SyncResult(plan=todo, items=items, unchanged=len(want) - len(todo.upserts),
-                        events=sorted(want.values(), key=lambda p: (p.day, p.title)))
+                        events=sorted(want.values(), key=lambda p: (p.day, p.title)),
+                        foreign=fixes.foreign, read_error=read_error)
     if dry_run:
-        result.written, result.removed = len(todo.upserts), len(todo.removals)
+        result.written, result.removed = len(todo.upserts), len(todo.removals) + len(fixes.duplicates)
         return result
+    if pairs:
+        on_start(len(pairs))
     for k in stale:
         del state.events[k]
     # Older state lacks titles and percentages; fill them in for events that stay as they are.
@@ -143,6 +210,7 @@ def run(cat: Catalogue, cal: Calendar, state_path: Path, today: date, dry_run: b
             for k in [k for k, e in state.events.items() if e["uid"] == change.uid and k in todo.removals]:
                 del state.events[k]
             result.removed += 1
-    if changes or stale or filled:
+    repaired = fixes.restored or fixes.adopted
+    if changes or stale or filled or repaired:
         store.save(state, state_path, today)
     return result
