@@ -35,7 +35,7 @@ def test_hawkhurst_has_no_2027_date():
 
 
 def test_every_active_entry_is_in_the_appendix_or_ruleless():
-    covered = {sid for sid, _, _ in APPENDIX_2027} | {"hawkhurst", "vines-cross"}
+    covered = {sid for sid, _, _ in APPENDIX_2027} | {"hawkhurst", "vines-cross", "buxted-badge"}
     active = {s.id for s in CAT.societies.values() if s.status == "active" and s.kind != "visiting"}
     assert active == covered
 

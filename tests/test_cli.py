@@ -240,7 +240,7 @@ def test_list_is_compact(confirmed):
     out = run("list").output
     from bonfire_dates.display import width
     assert max(width(line) for line in out.splitlines()) <= 150  # was 157, with a Kind column
-    assert "🦡 Firle badge night" in out and "unknown" in out
+    assert "🦡 Firle badge night" in out and "gone" in out
     assert "Kind" not in out
 
 
