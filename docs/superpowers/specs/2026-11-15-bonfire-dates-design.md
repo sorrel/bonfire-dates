@@ -102,7 +102,7 @@ designs the exact schema:
 ```toml
 [firle]
 name = "Firle"
-kind = "night"                     # night | badge | other
+kind = "night"                     # night | badge | other | visiting (no event of its own)
 status = "active"                  # active | unknown | gone
 place = "Firle"                    # for the calendar location / map pin
 start = "18:00"                    # optional; all-day event if absent
@@ -314,6 +314,11 @@ Cowbeech, Edenbridge (Kent), Icklesham (Robin Hood),
 Maresfield, Meeching (Newhaven), Shoreham, Vines Cross, Whatlington Renegades,
 Worthing, Cuckfield (fireworks display), and Buxted's badge night (spring 2026
 dates conflict: Fri 17 Apr or Fri 22 May).
+
+Update, 16 November 2026: Vines Cross is still going (now active, no rule
+yet); the others above are defunct (status `gone`, kept in case they return);
+Buxted's badge night stays `unknown`. Who the Devil are we? is listed as kind
+`visiting`: no event of its own.
 
 The Hawkhurst entry's 2027 date, Fri 12 Nov, is a placeholder guess. With no
 rule, the builder may instead show it as "date unknown" with no event: see

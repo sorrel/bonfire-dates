@@ -105,3 +105,42 @@ def describe(cat: Catalogue, rule: Rule | None) -> str:
         else:
             text = base
     return text + (" (a guess)" if rule.guess else "")
+
+
+def _counterparts(cat: Catalogue, society_id: str):
+    """The events whose order this one is held to: (other id, other must come later)."""
+    s = cat.societies[society_id]
+    if s.kind == "badge" and s.of in cat.societies:
+        yield s.of, True  # a badge night comes before its society's night
+    for b in cat.societies.values():
+        if b.kind == "badge" and b.of == society_id:
+            yield b.id, False
+
+
+def known_clash(cat: Catalogue, society_id: str, day: date) -> tuple[str, date] | None:
+    """The other event, and its known date, that `day` would put out of order:
+    a badge night always comes before its society's night in the same year
+    (though not necessarily just before)."""
+    for other, later in _counterparts(cat, society_id):
+        k = cat.societies[other].known_in(day.year)
+        if k and (k.date <= day if later else k.date >= day):
+            return other, k.date
+    return None
+
+
+def out_of_order(cat: Catalogue, society_id: str, year: int) -> tuple[str, date] | None:
+    """If this event's predicted date for the year breaks that order, the other
+    event and its date; else None. Only a predicted date gives way: a known date
+    never does, and when both are predicted the badge night's does."""
+    s = cat.societies[society_id]
+    day = date_for(cat, society_id, year)
+    if day is None or s.known_in(year):
+        return None
+    for other, later in _counterparts(cat, society_id):
+        o = cat.societies[other]
+        if o.status != "active":
+            continue
+        theirs = date_for(cat, other, year) if later else (k.date if (k := o.known_in(year)) else None)
+        if theirs and (theirs <= day if later else theirs >= day):
+            return other, theirs
+    return None

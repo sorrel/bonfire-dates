@@ -13,7 +13,9 @@ from .display import dim, heading, percent_cell, table
 from .load import DataError, load
 from .model import SOURCES, Catalogue, Known
 from .predict import EMOJI, predict_one, prediction_year, predictions
-from .rules import describe, rule_date
+from .rules import describe, known_clash, out_of_order, rule_date
+
+NO_EVENT = "no event of its own"
 
 
 def make_calendar() -> Calendar:
@@ -178,7 +180,8 @@ def list_cmd() -> None:
     for s in sorted(cat.societies.values(), key=lambda s: s.name.lower()):
         years = " ".join(sorted({str(k.date.year) for k in s.known})) or "—"
         mark = s.emoji or EMOJI[s.kind]
-        cells = [f"{mark} {s.name}", s.id, "" if s.status == "active" else s.status, describe(cat, s.rule), years]
+        rule = NO_EVENT if s.kind == "visiting" else describe(cat, s.rule)
+        cells = [f"{mark} {s.name}", s.id, "" if s.status == "active" else s.status, rule, years]
         style = {} if s.status == "active" else {"dim": True}
         rows.append([(c, style) if style else c for c in cells])
     click.echo()
@@ -202,6 +205,12 @@ def check_cmd() -> None:
         if misses:
             days = ", ".join(f"{k.date:%d %b %Y}" for k in misses)
             click.echo(dim(f"  {s.name}: rule ({describe(cat, s.rule)}) misses {days}"))
+    year = default_year(cat, date.today())
+    for s in active:
+        if clash := out_of_order(cat, s.id, year):
+            other = cat.societies[clash[0]].name
+            click.secho(f"  {s.name}: left out of {year}; its predicted date is not in order with "
+                        f"{other} ({clash[1]:%a %d %b}), and a badge night always comes first", fg="yellow")
 
 
 def _date(_ctx, _param, value: str | None) -> date | None:
@@ -230,7 +239,14 @@ def confirm_cmd(society: str, day: date, source: str, url: str | None, checked: 
     right one). DATE is like 2027-10-23. A first-hand date (the default
     source, verified) is kept private in data/known.toml; any other goes in
     the public confirmed.toml. Then run `bonfire sync`."""
-    sid = research.resolve_id(catalogue(), society)
+    cat = catalogue()
+    sid = research.resolve_id(cat, society)
+    if cat.societies[sid].kind == "visiting":
+        raise click.ClickException(f"{cat.societies[sid].name} has {NO_EVENT}, so there is no date to record.")
+    if clash := known_clash(cat, sid, day):
+        other = cat.societies[clash[0]].name
+        raise click.ClickException(f"A badge night always comes before its society's night: {other} is known "
+                                   f"for {clash[1]:%a %d %b %Y}. Correct that date first if it is wrong.")
     private = source == "verified"  # known first-hand: kept out of the public repo
     target = config.known_file() if private else config.CONFIRMED_FILE
     target.parent.mkdir(parents=True, exist_ok=True)

@@ -47,6 +47,13 @@ past events untouched) → `calendar_app` + `calendar.js`
 
 - A rule's anchor may be another society: if Newick's date is known, Firle
   follows it. Anchors must not form cycles (`load` refuses them).
+- A badge night always comes before its society's night in the same year,
+  though not always just before. Known dates that break this are a load
+  problem and `confirm` refuses them; a predicted date that breaks it is left
+  out (`rules.out_of_order`: a known date never gives way; if both are
+  predicted, the badge night's does).
+- A `visiting` society has no home location, procession or event of its
+  own: listed, never predicted, and it may not have a rule or dates.
 - Each event's URL is `bonfire-dates:<society>:<year>`, so a write whose reply
   was lost is found and updated, never duplicated.
 - `tests/test_seed.py` pins every 2027 date from the design's appendix and

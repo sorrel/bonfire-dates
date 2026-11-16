@@ -418,19 +418,19 @@ rule = { month = 11, weekday = "sat", nth = 4, source = "wiki", url = "https://e
 [cowbeech]
 name = "Cowbeech"
 kind = "night"
-status = "unknown"
+status = "gone"
 place = "Cowbeech, East Sussex"
 
 [edenbridge]
 name = "Edenbridge"
 kind = "night"
-status = "unknown"
+status = "gone"
 place = "Edenbridge, Kent"
 
 [icklesham]
 name = "Icklesham (Robin Hood)"
 kind = "night"
-status = "unknown"
+status = "gone"
 place = "Icklesham, East Sussex"
 
 [lindfield]
@@ -447,43 +447,43 @@ rule = { month = 11, day = 5, sunday = "sat-before" }
 [maresfield]
 name = "Maresfield"
 kind = "night"
-status = "unknown"
+status = "gone"
 place = "Maresfield, East Sussex"
 
 [meeching]
 name = "Meeching"
 kind = "night"
-status = "unknown"
+status = "gone"
 place = "Newhaven, East Sussex"
 
 [shoreham]
 name = "Shoreham"
 kind = "night"
-status = "unknown"
+status = "gone"
 place = "Shoreham-by-Sea, West Sussex"
 
 [vines-cross]
 name = "Vines Cross"
 kind = "night"
-status = "unknown"
+status = "active"
 place = "Vines Cross, East Sussex"
 
 [whatlington]
 name = "Whatlington Renegades"
 kind = "night"
-status = "unknown"
+status = "gone"
 place = "Whatlington, East Sussex"
 
 [worthing]
 name = "Worthing"
 kind = "night"
-status = "unknown"
+status = "gone"
 place = "Worthing, West Sussex"
 
 [cuckfield]
 name = "Cuckfield"
 kind = "night"
-status = "unknown"
+status = "gone"
 place = "Cuckfield, West Sussex"
 note = "a ticketed fireworks display, not a society night"
 
@@ -494,3 +494,9 @@ status = "unknown"
 place = "Buxted, East Sussex"
 of = "buxted"
 note = "2026 listings conflict: Friday 17 April or Friday 22 May"
+
+[who-the-devil]
+name = "Who the Devil are we?"
+kind = "visiting"
+status = "active"
+note = "no home location, procession or event of its own"

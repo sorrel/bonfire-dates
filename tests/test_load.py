@@ -181,3 +181,30 @@ def test_searched_is_the_day_sources_were_last_looked_for(tmp_path):
 def test_searched_must_be_a_date(tmp_path):
     with pytest.raises(DataError, match="searched must be a date"):
         load(write(tmp_path, TWO.replace('start = "18:00"', 'start = "18:00"\nsearched = "recently"')), None)
+
+
+def test_visiting_society_loads_without_rule(tmp_path):
+    cat = load(write(tmp_path, BASE.replace('"night"', '"visiting"')), None)
+    assert cat.societies["s"].kind == "visiting"
+
+
+@pytest.mark.parametrize("extra", [
+    'rule = { month = 9, weekday = "sat", nth = 1 }',
+    "known = [ { date = 2030-11-02, source = \"society\" } ]",
+])
+def test_visiting_society_may_not_have_dates(tmp_path, extra):
+    with pytest.raises(DataError, match="no event of its own"):
+        load(write(tmp_path, BASE.replace('"night"', '"visiting"') + extra + "\n"), None)
+
+
+def test_known_badge_date_after_its_known_night_is_a_problem(tmp_path):
+    text = TWO + """
+[firle-badge]
+name = "Firle badge night"
+kind = "badge"
+status = "active"
+of = "firle"
+known = [ { date = 2030-10-26, source = "society" } ]
+"""
+    with pytest.raises(DataError, match="must come before"):
+        load(write(tmp_path, text), None)
