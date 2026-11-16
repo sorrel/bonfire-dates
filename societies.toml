@@ -59,7 +59,7 @@ status = "active"
 place = "Crowborough, East Sussex"
 searched = 2026-11-16
 rule = { month = 9, weekday = "sat", nth = 2 }
-note = "Crowborough Bonfire & Carnival Society"
+note = "Crowborough Bonfire & Carnival Society; the 5 November fireworks in the town are the council's, not the society's"
 
 [fletching]
 name = "Fletching"

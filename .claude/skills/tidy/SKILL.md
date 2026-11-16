@@ -40,6 +40,11 @@ Record by the README's rules, strictly:
   `society` only from the society's own site, page or poster; `guides` when two
   independent guides agree; otherwise `guide`. `wiki` for Wikipedia.
   **Never `verified`:** that is for dates the user knows first-hand.
+- **Make sure the event is the society's own.** Councils, schools and venues
+  run fireworks nights in the same towns (often on 5 November), and guides and
+  news stories mix them up with the society's procession. A date for an event
+  run by someone else is never recorded against the society. If you can't tell
+  who runs it, list it for the user to judge.
 - **A disagreement** with a date already held is not recorded. List it for the
   user to judge (postponement, cancellation, typo).
 - **A rule that looks wrong** (a new date it misses) is reported, not changed.

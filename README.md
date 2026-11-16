@@ -76,6 +76,10 @@ fetches nothing. The rules:
   An address quoted by a guide or an old news story is checked first.
 - A date read online is recorded at its real trust level: `society` only
   from the society's own site or poster, otherwise `guide` at best.
+- Make sure the event is the society's own. Councils, schools and venues
+  run fireworks nights in the same towns, often on 5 November, and listings
+  mix them up with the society's procession. Leave out anything run by
+  someone else.
 - A source that disagrees with a date already held is not recorded; it is
   listed for a person to judge (a postponement, a cancellation, a typo).
 - Each society searched gets `searched = YYYY-MM-DD` in `societies.toml`.
