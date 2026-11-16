@@ -17,6 +17,7 @@ badge_confidence = 10  # few badge nights are fixed far ahead
 name = "Chiddingly badge night"
 kind = "badge"
 status = "active"
+searched = 2026-11-16
 place = "Gun Brewery, Gun Hill, East Sussex"
 of = "chiddingly"
 start = "18:00"
@@ -119,6 +120,7 @@ rule = { month = 10, weekday = "sat", nth = 1 }
 name = "Lewes bonfire fancy dress"
 kind = "other"
 status = "active"
+searched = 2026-11-16
 place = "Lewes Town Hall, Lewes"
 emoji = "🎭"
 rule = { month = 10, weekday = "fri", nth = 2 }
@@ -136,6 +138,7 @@ rule = { month = 10, weekday = "sat", nth = 2 }
 name = "Nevill badge night"
 kind = "badge"
 status = "active"
+searched = 2026-11-16
 place = "Lewes, East Sussex"
 of = "nevill"
 rule = { month = 10, weekday = "sun", nth = 2, guess = true }
@@ -192,6 +195,7 @@ known = [
 name = "Firle badge night"
 kind = "badge"
 status = "active"
+searched = 2026-11-16
 place = "The Ram Inn, Firle, East Sussex"
 of = "firle"
 start = "19:00"
@@ -205,6 +209,7 @@ known = [
 name = "Ninfield badge night"
 kind = "badge"
 status = "active"
+searched = 2026-11-16
 place = "Ninfield, East Sussex"
 of = "ninfield"
 rule = { anchor = "ninfield", weekday = "wed", direction = "before" }
@@ -287,6 +292,7 @@ known = [
 name = "Lewes badge night"
 kind = "badge"
 status = "active"
+searched = 2026-11-16
 place = "Lewes, East Sussex"
 of = "lewes"
 rate_on_evidence = true
@@ -362,6 +368,7 @@ rule = { month = 11, weekday = "sat", nth = 2, source = "society", url = "https:
 name = "Glynde, Beddingham & Firle membership night"
 kind = "badge"
 status = "active"
+searched = 2026-11-16
 place = "Glynde Social Club, Glynde"
 of = "glynde-parade"
 start = "19:00"
@@ -374,6 +381,7 @@ known = [
 name = "Glynde, Beddingham & Firle Memorial Parade"
 kind = "other"
 status = "active"
+searched = 2026-11-16
 place = "Glynde Social Club, Glynde"
 emoji = "🕯️"
 start = "19:30"
@@ -466,6 +474,7 @@ place = "Shoreham-by-Sea, West Sussex"
 name = "Vines Cross"
 kind = "night"
 status = "active"
+searched = 2026-11-16
 place = "Vines Cross, East Sussex"
 
 [whatlington]
@@ -490,10 +499,13 @@ note = "a ticketed fireworks display, not a society night"
 [buxted-badge]
 name = "Buxted badge night"
 kind = "badge"
-status = "unknown"
-place = "Buxted, East Sussex"
+status = "active"
+searched = 2026-11-16
+place = "Buxted Football Club, Buxted, East Sussex"
 of = "buxted"
-note = "2026 listings conflict: Friday 17 April or Friday 22 May"
+start = "19:00"
+links = { website = "https://www.buxtedbonfiresociety.co.uk" }
+note = "in spring; one listing gave Friday 22 May 2026, but its own page gives 17 April"
 
 [who-the-devil]
 name = "Who the Devil are we?"

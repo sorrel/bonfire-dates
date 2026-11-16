@@ -8,3 +8,10 @@ date = 2026-11-21
 source = "society"
 url = "https://www.chiddinglybonfire.co.uk"
 checked = 2026-11-16
+
+[[confirmed]]
+society = "buxted-badge"
+date = 2026-04-17
+source = "society"
+url = "https://www.buxtedbonfiresociety.co.uk/event-details/buxted-bonfire-society-badge-night"
+checked = 2026-11-16
