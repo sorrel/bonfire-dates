@@ -5,6 +5,7 @@ since an ANSI escape takes no columns. Click strips the styling when the
 output isn't a terminal.
 """
 import unicodedata
+from datetime import date
 
 import click
 
@@ -38,9 +39,18 @@ def _styled(c: Cell, cols: int) -> str:
     return shown + " " * max(0, cols - width(text))
 
 
-def table(rows: list[list[Cell]], header: list[str], indent: str = "  ") -> str:
-    """Rows under a bold header and a dim rule; each cell padded plain, then styled."""
-    widths = [max(width(_text(r[i])) for r in [header, *rows]) for i in range(len(header))]
+def widths_of(rows: list[list[Cell]], header: list[str]) -> list[int]:
+    """Each column's width: its widest cell, header included."""
+    return [max(width(_text(r[i])) for r in [header, *rows]) for i in range(len(header))]
+
+
+def table(rows: list[list[Cell]], header: list[str], indent: str = "  ",
+          at_least: list[int] | None = None) -> str:
+    """Rows under a bold header and a dim rule; each cell padded plain, then styled.
+    `at_least` sets minimum column widths, so several tables can line up."""
+    widths = widths_of(rows, header)
+    if at_least:
+        widths = [max(w, m) for w, m in zip(widths, at_least, strict=True)]
     widths_padded = [*widths[:-1], 0]  # the last column isn't padded, so no line ends in spaces
     line = lambda cells: indent + "  ".join(_styled(c, w) for c, w in zip(cells, widths_padded, strict=True))
     rule = indent + "─" * (sum(widths) + 2 * (len(widths) - 1))
@@ -69,3 +79,16 @@ def percent_style(p: int, confirmed: bool = False) -> dict:
 
 def percent_cell(p: int, confirmed: bool = False) -> Cell:
     return (f"{p}% ✓" if confirmed else f"{p}%", percent_style(p, confirmed))
+
+
+def until(day: date, today: date) -> str:
+    """How far off a day is, as you'd say it: days, then weeks, then months."""
+    days = (day - today).days
+    if days < 2:
+        return {0: "today", 1: "tomorrow"}.get(days, "past")
+    if days < 14:
+        return f"{days} days"
+    if days <= 63:
+        return f"{days // 7} weeks"
+    months = (day.year - today.year) * 12 + day.month - today.month - (day.day < today.day)
+    return f"{months} months"

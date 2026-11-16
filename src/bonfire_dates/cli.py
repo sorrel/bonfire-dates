@@ -9,7 +9,7 @@ import click
 from . import config, research, store, sync
 from .calendar_app import Calendar, MacCalendar
 from .helpfmt import Group
-from .display import dim, heading, percent_cell, table
+from .display import dim, heading, percent_cell, table, until, widths_of
 from .load import DataError, load
 from .model import SOURCES, Catalogue, Known
 from .predict import EMOJI, going_text, predict_one, prediction_year, predictions
@@ -202,6 +202,77 @@ def predict_cmd(years: list[int] | None, verbose: bool, as_json: bool) -> None:
         header = ["Date", "Event", "Sure"] + (["Going"] if going else []) + (["Rule", "Fits"] if verbose else [])
         click.echo(table(rows, header))
     click.echo()
+
+
+def today() -> date:
+    return date.today()
+
+
+GOING_MARK = "★"
+
+
+@cli.command("diary", examples=[("bonfire diary", "everything ahead, from today"),
+                                 ("bonfire diary --going", "only the events you're going to"),
+                                 ("bonfire diary --json", "for scripts")])
+@click.option("--going", "going_only", is_flag=True, help="Only the events you're going to.")
+@click.option("--json", "as_json", is_flag=True, help="Plain JSON, for scripts.")
+def diary_cmd(going_only: bool, as_json: bool) -> None:
+    """Every event ahead, from today, with the ones you're going to picked out.
+
+    Covers what the calendar holds: the next 18 months, and once Lewes night
+    has passed, only this year's known dates. Mark an event with
+    `bonfire going SOCIETY`."""
+    cat = catalogue()
+    now = today()
+    ahead = sorted(sync.wanted(cat, now).values(), key=lambda p: (p.day, p.society.name))
+    going = [p for p in ahead if p.hours]
+    shown = going if going_only else ahead
+    if as_json:
+        click.echo(json.dumps([{"key": p.key, "society": p.society.id, "name": p.society.name,
+                                "date": p.day.isoformat(), "in": until(p.day, now), "percent": p.percent,
+                                "confirmed": p.confirmed, "going": going_text(p.hours) if p.hours else None}
+                               for p in shown], indent=1, ensure_ascii=False))
+        return
+    click.echo()
+    if not shown:
+        message = ("Nothing marked. `bonfire going SOCIETY` marks an event." if not cat.going
+                   else "Nothing ahead." if not going_only else "Nothing you're going to is ahead.")
+        click.echo(heading("Diary") + dim(f"  {message}"))
+        click.echo()
+        return
+    summary = dim(f"  from {now:%a %d %b %Y}, {plural(len(shown), 'event')}")
+    if going and not going_only:
+        summary += dim(", ") + click.style(f"{len(going)} you're going to", fg="green", bold=True)
+    click.echo(heading("Diary") + summary)
+    if going:
+        p = going[0]
+        click.echo("  " + click.style("Next you're going to: ", bold=True)
+                   + click.style(f"{GOING_MARK} {p.title}", fg="green", bold=True)
+                   + f"  {p.day:%a %d %b %Y}, {going_text(p.hours)}" + dim(f"  {phrase(p.day, now)}"))
+    elif not cat.going:
+        click.echo(dim("  `bonfire going SOCIETY` marks an event you're going to."))
+    def row(p) -> list:
+        strong = {"bold": True} if p.hours else {}
+        cells = [(f"{p.day:%a %d %b}", strong), (until(p.day, now), {"dim": True}), (p.title, strong),
+                 percent_cell(p.percent, p.confirmed)]
+        if going:
+            cells.append((f"{GOING_MARK} {going_text(p.hours)}", {"fg": "green", "bold": True}) if p.hours else "")
+        return cells
+
+    header = ["Date", "In", "Event", "Sure"] + (["Going"] if going else [])
+    months = [(month, [row(p) for p in group]) for month, group in groupby(shown, key=lambda p: p.day.replace(day=1))]
+    widths = widths_of([r for _, rows in months for r in rows], header)  # every month's columns line up
+    for month, rows in months:
+        click.echo()
+        click.echo(heading(f"{month:%B %Y}"))
+        click.echo(table(rows, header, at_least=widths))
+    click.echo()
+
+
+def phrase(day: date, now: date) -> str:
+    """`until` as a phrase: "today", "tomorrow", "in 3 weeks"."""
+    text = until(day, now)
+    return text if text in ("today", "tomorrow") else f"in {text}"
 
 
 @cli.command("list", examples=[("bonfire list", "every society, with the ID other commands take")])
