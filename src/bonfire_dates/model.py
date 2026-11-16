@@ -73,3 +73,5 @@ class Society:
 class Catalogue:
     societies: dict[str, Society]
     badge_confidence: int = 10
+    # Events the user is going to, "id:year" → (from, to): private, from data/going.toml.
+    going: dict[str, tuple[time, time]] = field(default_factory=dict)

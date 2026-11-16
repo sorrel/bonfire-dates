@@ -48,7 +48,8 @@ def test_predict_json_is_plain(confirmed):
     rows = json.loads(r.output)
     firle = next(x for x in rows if x["society"] == "firle")
     assert firle == {"key": "firle:2027", "society": "firle", "name": "Firle", "date": "2027-10-23",
-                     "percent": firle["percent"], "confirmed": False, "rule": "a week before Newick"}
+                     "percent": firle["percent"], "confirmed": False, "rule": "a week before Newick",
+                     "going": None}
     assert isinstance(firle["percent"], int)
 
 
@@ -317,3 +318,58 @@ def test_confirm_own_event_overrides_the_fifth_check(confirmed):
 def test_confirm_fifth_of_november_is_fine_where_the_rule_is_near_it(confirmed):
     r = run("confirm", "lewes", "2027-11-05", "--source", "society", "--url", "https://example.org/p")
     assert r.exit_code == 0, r.output
+
+
+def _going_text(tmp_path) -> str:
+    path = tmp_path / "data" / "going.toml"
+    return path.read_text() if path.exists() else ""
+
+
+def test_going_marks_with_default_hours(confirmed, tmp_path):
+    r = run("going", "robertsbridge", "2027")
+    assert r.exit_code == 0, r.output
+    assert "Robertsbridge" in r.output and "Sat 20 Nov 2027" in r.output and "18:00–22:30" in r.output
+    text = _going_text(tmp_path)
+    assert 'society = "robertsbridge"' in text and "year = 2027" in text and 'from = "18:00"' in text
+
+
+def test_going_again_replaces_hours(confirmed, tmp_path):
+    run("going", "robertsbridge", "2027")
+    r = run("going", "robertsbridge", "2027", "--from", "17:30", "--to", "23:00")
+    assert r.exit_code == 0, r.output
+    text = _going_text(tmp_path)
+    assert text.count("[[going]]") == 1 and 'from = "17:30"' in text and 'to = "23:00"' in text
+
+
+def test_going_remove(confirmed, tmp_path):
+    run("going", "robertsbridge", "2027")
+    run("going", "seaford", "2027")
+    r = run("going", "robertsbridge", "2027", "--remove")
+    assert r.exit_code == 0, r.output
+    text = _going_text(tmp_path)
+    assert "robertsbridge" not in text and "seaford" in text
+    assert run("going", "robertsbridge", "2027", "--remove").exit_code != 0  # not marked: says so
+
+
+def test_going_lists(confirmed):
+    assert "Nothing marked" in run("going").output
+    run("going", "robertsbridge", "2027", "--to", "23:15")
+    out = run("going").output
+    assert "Robertsbridge" in out and "Sat 20 Nov 2027" in out and "18:00–23:15" in out
+
+
+def test_going_refuses_visiting_and_bad_times(confirmed):
+    visiting = next(s for s in __import__("bonfire_dates.cli", fromlist=["catalogue"]).catalogue().societies.values()
+                    if s.kind == "visiting")
+    assert run("going", visiting.id, "2027").exit_code != 0
+    r = run("going", "robertsbridge", "2027", "--from", "6pm")
+    assert r.exit_code != 0 and "18:00" in r.output
+
+
+def test_predict_shows_going_column(confirmed):
+    run("going", "robertsbridge", "2027")
+    out = run("predict", "2027").output
+    line = next(l for l in out.splitlines() if "Robertsbridge" in l)
+    assert "18:00–22:30" in line and "Going" in out
+    data = json.loads(run("predict", "2027", "--json").output)
+    assert next(d for d in data if d["society"] == "robertsbridge")["going"] == "18:00–22:30"

@@ -67,3 +67,26 @@ def test_predicted_badge_after_its_night_is_left_out():
     cat = with_known(CAT, "chiddingly", date(2030, 8, 10), "society")  # before the badge's 3rd Sat Aug
     ids = {p.society.id for p in predictions(cat, 2030)}
     assert "chiddingly" in ids and "chiddingly-badge" not in ids
+
+
+def test_going_makes_event_timed_with_its_hours():
+    from dataclasses import replace
+    from datetime import time
+    from bonfire_dates.predict import predict_one
+    cat = replace(CAT, going={"robertsbridge:2027": (time(18, 0), time(22, 30))})
+    p = predict_one(cat, "robertsbridge", 2027)
+    assert not p.all_day
+    assert p.start == datetime(2027, 11, 20, 18, 0, tzinfo=config.TZ)
+    assert p.end == datetime(2027, 11, 20, 22, 30, tzinfo=config.TZ)
+    assert p.notes.splitlines()[1] == "Going 18:00–22:30"
+    assert predict_one(CAT, "robertsbridge", 2027).all_day  # unmarked: as before
+
+
+def test_going_past_midnight_ends_next_day():
+    from dataclasses import replace
+    from datetime import time
+    from bonfire_dates.predict import predict_one
+    cat = replace(CAT, going={"glynde-parade:2027": (time(18, 0), time(0, 30))})
+    p = predict_one(cat, "glynde-parade", 2027)
+    assert p.start == datetime(2027, 11, 19, 18, 0, tzinfo=config.TZ)  # hours replace the society's start
+    assert p.end == datetime(2027, 11, 20, 0, 30, tzinfo=config.TZ)

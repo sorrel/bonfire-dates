@@ -24,6 +24,10 @@ def _evidence_line(k: Known) -> str:
     return line
 
 
+def going_text(hours: tuple[time, time]) -> str:
+    return f"{hours[0]:%H:%M}–{hours[1]:%H:%M}"
+
+
 @dataclass(frozen=True)
 class Prediction:
     key: str
@@ -33,17 +37,23 @@ class Prediction:
     confirmed: bool
     rating: Rating
     rule_text: str
+    hours: tuple[time, time] | None = None  # going: the user's own hours, which replace the society's
 
     @property
     def all_day(self) -> bool:
-        return self.society.start is None
+        return self.hours is None and self.society.start is None
 
     @property
     def start(self) -> datetime:
-        return datetime.combine(self.day, self.society.start or time(0), tzinfo=config.TZ)
+        begin = self.hours[0] if self.hours else self.society.start or time(0)
+        return datetime.combine(self.day, begin, tzinfo=config.TZ)
 
     @property
     def end(self) -> datetime:
+        if self.hours:  # an end at or before the start runs past midnight
+            begin, finish = self.hours
+            day = self.day + timedelta(days=1) if finish <= begin else self.day
+            return datetime.combine(day, finish, tzinfo=config.TZ)
         if self.all_day:
             return datetime.combine(self.day + timedelta(days=1), time(0), tzinfo=config.TZ)
         return self.start + EVENT_LENGTH
@@ -56,6 +66,8 @@ class Prediction:
     @property
     def notes(self) -> str:
         lines = [f"Confidence {self.percent}%"]
+        if self.hours:
+            lines.append(f"Going {going_text(self.hours)}")
         if self.confirmed:
             lines += ["Confirmed:", *(_evidence_line(k) for k in self.rating.matches)]
         else:
@@ -77,7 +89,8 @@ def predict_one(cat: Catalogue, society_id: str, year: int) -> Prediction | None
     if s.status != "active" or day is None or out_of_order(cat, society_id, year):
         return None
     r = rate(cat, society_id, year)
-    return Prediction(f"{s.id}:{year}", s, day, r.percent, r.confirmed, r, describe(cat, s.rule))
+    key = f"{s.id}:{year}"
+    return Prediction(key, s, day, r.percent, r.confirmed, r, describe(cat, s.rule), cat.going.get(key))
 
 
 def predictions(cat: Catalogue, year: int) -> list[Prediction]:

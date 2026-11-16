@@ -11,6 +11,9 @@ Design: `docs/superpowers/specs/2026-11-15-bonfire-dates-design.md`.
 - **Neutral about the user.** No tracked file may show which societies the
   user belongs to or which events they attend. Date sources say how a date is
   known (`verified`, `society`, `guides`, `guide`, `wiki`), never by whom.
+- **Going is private.** Events the user is going to live only in gitignored
+  `data/going.toml` (`bonfire going`), keyed by society and year; a marked
+  event is timed with the user's hours instead of all-day.
 - **First-hand dates are private.** `verified` dates live only in gitignored
   `data/known.toml` (merged by `load`); `societies.toml` and `confirmed.toml`
   hold only dates with a public source. `test_seed_is_neutral` enforces it.

@@ -22,7 +22,7 @@ from pathlib import Path
 from . import store
 from .calendar_app import Calendar, CalendarError, Change, Found, payload
 from .model import Catalogue
-from .predict import Prediction, prediction_year, predictions
+from .predict import Prediction, going_text, prediction_year, predictions
 
 
 def fingerprint(p: Prediction) -> str:
@@ -143,6 +143,9 @@ def _upsert_item(p: Prediction, before: dict | None) -> Item:
         changes.append(f"was {before['percent']}%")
     if before.get("title") and before["title"].rstrip("?") != p.title.rstrip("?"):  # older titles ended in "?" below 70%
         changes.append(f"was “{before['title']}”")
+    hours = going_text(p.hours) if p.hours else None
+    if before.get("hours") != hours and (hours or before.get("hours")):  # going marked, changed or taken off
+        changes.append(f"now {hours}" if hours else "back to all-day" if p.all_day else "back to its own time")
     recorded = "percent" in before and "title" in before
     item.note = ", ".join(changes) or ("notes changed" if recorded else "title or notes changed")
     return item
@@ -155,7 +158,8 @@ def _removal_item(cat: Catalogue, key: str, before: dict) -> Item:
 
 
 def _record(p: Prediction, uid: str) -> dict:
-    return {"uid": uid, "day": p.day.isoformat(), "hash": fingerprint(p), "title": p.title, "percent": p.percent}
+    return {"uid": uid, "day": p.day.isoformat(), "hash": fingerprint(p), "title": p.title, "percent": p.percent,
+            "hours": going_text(p.hours) if p.hours else None}
 
 
 def run(cat: Catalogue, cal: Calendar, state_path: Path, today: date, dry_run: bool,
