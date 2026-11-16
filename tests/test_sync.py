@@ -371,3 +371,24 @@ def test_cli_reports_restored_duplicate_and_left_alone(tmp_path, monkeypatch):
     assert "restored" in out and "duplicate" in out
     assert "1 restored" in out and "1 removed" in out
     assert "Left alone" in out and "Torch-making evening" in out
+
+
+# --- The calendar looks no more than 18 months ahead ------------------------
+
+def test_horizon_is_eighteen_months_ahead():
+    assert sync.horizon(date(2026, 11, 16)) == date(2028, 5, 16)
+    assert sync.horizon(date(2026, 8, 31)) == date(2028, 2, 29)  # no 31 February
+    assert sync.horizon(date(2027, 1, 1)) == date(2028, 7, 1)
+
+
+def test_nothing_is_wanted_beyond_the_horizon():
+    today = date(2027, 1, 1)
+    want = sync.wanted(CAT, today)
+    assert "uckfield:2027" in want
+    assert "uckfield:2028" not in want  # September 2028: more than 18 months off
+    assert all(p.day < sync.horizon(today) for p in want.values())
+
+
+def test_the_horizon_reaches_into_the_year_after_next():
+    want = sync.wanted(CAT, date(2027, 6, 1))  # horizon 1 Dec 2028
+    assert "uckfield:2028" in want and "lewes:2028" in want

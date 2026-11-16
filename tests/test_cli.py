@@ -281,3 +281,22 @@ def test_confirm_refuses_a_night_date_before_its_badge(confirmed):
     run("confirm", "chiddingly-badge", "2030-08-17", "--source", "society")
     r = run("confirm", "chiddingly", "2030-08-17", "--source", "society")
     assert r.exit_code != 0 and "before" in r.output
+
+
+def test_predict_takes_a_span_of_years(confirmed):
+    r = run("predict", "2027-2028")
+    assert r.exit_code == 0
+    assert "October 2027" in r.output and "October 2028" in r.output
+    rows = json.loads(run("predict", "2027-2028", "--json").output)
+    assert {"firle:2027", "firle:2028"} <= {x["key"] for x in rows}
+
+
+def test_todo_takes_a_span_of_years(confirmed):
+    out = run("todo", "2027-2029").output
+    assert all(f"Still to confirm for {y}" in out for y in (2027, 2028, 2029))
+
+
+@pytest.mark.parametrize("bad", ["2029-2027", "twenty", "2027-", "2027-2040"])
+def test_a_bad_span_of_years_is_refused(confirmed, bad):
+    r = run("todo", bad)
+    assert r.exit_code == 2 and "YEARS" in r.output
