@@ -71,6 +71,11 @@ fetches nothing. The rules:
   `bonfire sources` shows it, and `todo`'s Checked column counts it, so a
   society not looked at for a while stands out.
 
+In Claude Code, `/tidy` does the whole round in one go: it searches for each
+society's sources by these rules, records what it finds, checks the data,
+syncs the calendar and opens a PR (`.claude/skills/tidy/SKILL.md`). Name
+societies to search just those, as in `/tidy firle newick`.
+
 ## How confidence works
 
 A confirmed date is 100%. Otherwise the rule is checked against the society's
