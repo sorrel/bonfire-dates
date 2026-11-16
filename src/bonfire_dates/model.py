@@ -4,7 +4,7 @@ from datetime import date, time
 
 # Trust order, highest first. A source says how a date is known, never by whom.
 SOURCES = ("verified", "society", "guides", "guide", "wiki")
-# visiting: a society with no event of its own, which marches at others' nights.
+# visiting: a society with no home location, procession or event of its own.
 KINDS = ("night", "badge", "other", "visiting")
 STATUSES = ("active", "unknown", "gone")
 WEEKDAYS = ("mon", "tue", "wed", "thu", "fri", "sat", "sun")

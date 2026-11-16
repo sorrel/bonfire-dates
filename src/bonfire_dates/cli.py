@@ -242,7 +242,7 @@ def confirm_cmd(society: str, day: date, source: str, url: str | None, checked: 
     cat = catalogue()
     sid = research.resolve_id(cat, society)
     if cat.societies[sid].kind == "visiting":
-        raise click.ClickException(f"{cat.societies[sid].name} has {NO_EVENT}: it marches at other societies' nights.")
+        raise click.ClickException(f"{cat.societies[sid].name} has {NO_EVENT}, so there is no date to record.")
     if clash := known_clash(cat, sid, day):
         other = cat.societies[clash[0]].name
         raise click.ClickException(f"A badge night always comes before its society's night: {other} is known "
