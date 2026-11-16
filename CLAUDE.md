@@ -46,6 +46,8 @@ past events untouched) → `calendar_app` + `calendar.js`
 `cli.py` holds only commands; `display.py` the shared table helpers.
 `/tidy` (`.claude/skills/tidy/`) is the assistant's routine: search for sources
 by hand under the README's rules, then sync. It is never code that fetches.
+`tools/refresh.sh` (installed as a launchd agent by `tools/install-refresh.sh`,
+which writes the plist outside the repo) runs `check` then `sync` daily.
 
 - A rule's anchor may be another society: if Newick's date is known, Firle
   follows it. Anchors must not form cycles (`load` refuses them).

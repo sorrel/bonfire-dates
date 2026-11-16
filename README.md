@@ -54,6 +54,17 @@ when the data loads. Only dates with a public source go into the public
 `confirmed.toml`. So the repository never shows whose season it reflects, and
 your own copy still rates your well-known societies higher.
 
+## Keeping the calendar fresh in the background
+
+`tools/install-refresh.sh` installs a launchd agent that runs
+`tools/refresh.sh` every morning at 07:30 (or on wake, if the Mac was asleep):
+`bonfire check`, then `bonfire sync`. It fetches nothing; new dates still come
+from research by hand. It keeps the calendar right as time passes: the 18-month
+horizon rolls on, this year drops to known dates after Lewes night, events
+deleted by hand come back and failed writes retry. Data problems leave the
+calendar alone. The log is `data/refresh.log`; `tools/install-refresh.sh
+--remove` takes it out.
+
 ## Looking for sources
 
 Websites move and lapse (one society's old domain now belongs to someone
