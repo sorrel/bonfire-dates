@@ -33,6 +33,7 @@ then the rule and the evidence behind it.
 | `bonfire sync [--dry-run]` | Bring the Bonfire calendar in line (the next 18 months; after Lewes night, this year shows only known dates). Reads the calendar back first: restores an event deleted by hand, removes duplicates, and lists events it didn't make without touching them. Lists each event added, restored, moved (with its old date), updated (with its old percentage) or removed, then a tally, what the calendar holds and the next event. Exits 1 if any write failed; those retry next time |
 | `bonfire todo [YEARS]` | What's still only predicted, with each society's links; `2027-2029` looks a few seasons ahead |
 | `bonfire confirm ID DATE [--source …] [--url …]` | Record a date once it's known |
+| `bonfire going [ID] [YEAR] [--from …] [--to …] [--remove]` | Mark an event you're going to: it becomes a timed event that evening (18:00 to 22:30 unless you say otherwise). YEAR defaults to the society's next event. With no ID, lists what's marked |
 | `bonfire evidence ID FILE` | Keep a poster or screenshot locally (never published) |
 | `bonfire sources ID` | The links and evidence behind a society's dates |
 | `bonfire list` | Every society and event: its ID (what other commands take), rule and known years |
@@ -53,6 +54,17 @@ they go into `data/known.toml`, which is never committed, and are merged in
 when the data loads. Only dates with a public source go into the public
 `confirmed.toml`. So the repository never shows whose season it reflects, and
 your own copy still rates your well-known societies higher.
+
+## Events you're going to
+
+`bonfire going seaford` marks the society's next event as one you're going
+to. In the calendar it then becomes a timed event that evening, 18:00 to 22:30,
+instead of an all-day one; `--from 17:30 --to 23:00` sets your own hours (an
+end before the start runs past midnight). Its notes say "Going 18:00–22:30",
+and `predict` shows the hours. Each mark is for one event in one year, so going
+is decided season by season. `--remove` takes a mark off and the event goes
+back to all-day. Marks are private, like first-hand dates: they live in
+`data/going.toml`, which is never committed. Run `bonfire sync` afterwards.
 
 ## Keeping the calendar fresh in the background
 

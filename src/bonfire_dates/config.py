@@ -21,3 +21,8 @@ def data_dir() -> Path:
 def known_file() -> Path:
     """Dates known first-hand ("verified"): private, never committed."""
     return data_dir() / "known.toml"
+
+
+def going_file() -> Path:
+    """Events the user is going to, with their hours: private, never committed."""
+    return data_dir() / "going.toml"

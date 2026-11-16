@@ -1,6 +1,6 @@
 """The `bonfire` command. Commands only: the work lives in the other modules."""
 import json
-from datetime import date
+from datetime import date, time
 from itertools import groupby
 from pathlib import Path
 
@@ -12,7 +12,7 @@ from .helpfmt import Group
 from .display import dim, heading, percent_cell, table
 from .load import DataError, load
 from .model import SOURCES, Catalogue, Known
-from .predict import EMOJI, predict_one, prediction_year, predictions
+from .predict import EMOJI, going_text, predict_one, prediction_year, predictions
 from .rules import describe, known_clash, out_of_order, rule_date
 
 NO_EVENT = "no event of its own"
@@ -25,7 +25,7 @@ def make_calendar() -> Calendar:
 def catalogue() -> Catalogue:
     """The societies and confirmed dates, or a readable list of problems and exit 1."""
     try:
-        return load(config.SOCIETIES_FILE, config.CONFIRMED_FILE, config.known_file())
+        return load(config.SOCIETIES_FILE, config.CONFIRMED_FILE, config.known_file(), config.going_file())
     except DataError as e:
         click.secho("The data has problems:", fg="yellow", bold=True)
         for p in e.problems:
@@ -183,19 +183,23 @@ def predict_cmd(years: list[int] | None, verbose: bool, as_json: bool) -> None:
     if as_json:
         click.echo(json.dumps([{"key": p.key, "society": p.society.id, "name": p.society.name,
                                 "date": p.day.isoformat(), "percent": p.percent, "confirmed": p.confirmed,
-                                "rule": p.rule_text} for p in found], indent=1, ensure_ascii=False))
+                                "rule": p.rule_text, "going": going_text(p.hours) if p.hours else None}
+                               for p in found], indent=1, ensure_ascii=False))
         return
+    going = any(p.hours for p in found)
     for month, group in groupby(found, key=lambda p: p.day.replace(day=1)):
         click.echo()
         click.echo(heading(f"{month:%B %Y}"))
         rows = []
         for p in group:
             row = [f"{p.day:%a %d %b}", p.title, percent_cell(p.percent, p.confirmed)]
+            if going:
+                row.append((going_text(p.hours), {"fg": "green", "bold": True}) if p.hours else "")
             if verbose:
                 years = " ".join(str(k.date.year) for k in p.rating.matches) or "—"
                 row += [(p.rule_text, {"dim": True}), years]
             rows.append(row)
-        header = ["Date", "Event", "Sure"] + (["Rule", "Fits"] if verbose else [])
+        header = ["Date", "Event", "Sure"] + (["Going"] if going else []) + (["Rule", "Fits"] if verbose else [])
         click.echo(table(rows, header))
     click.echo()
 
@@ -389,3 +393,97 @@ def evidence_cmd(society: str, file: Path) -> None:
     sid = research.resolve_id(catalogue(), society)
     target = research.file_evidence(config.data_dir(), sid, file, date.today())
     click.echo(click.style("Filed: ", fg="green") + str(target))
+
+
+DEFAULT_FROM, DEFAULT_TO = time(18, 0), time(22, 30)
+
+
+def _time(_ctx, _param, value: str) -> time:
+    try:
+        return time.fromisoformat(value)
+    except ValueError:
+        raise click.BadParameter("use a time like 18:00") from None
+
+
+def next_year_for(cat: Catalogue, sid: str, today: date) -> int:
+    """The year of the society's next event in the calendar, or the season being predicted."""
+    ahead = sorted((p for p in sync.wanted(cat, today).values() if p.society.id == sid), key=lambda p: p.day)
+    return ahead[0].day.year if ahead else default_year(cat, today)
+
+
+def going_list(cat: Catalogue, today: date) -> None:
+    click.echo()
+    if not cat.going:
+        click.echo(heading("Going") + dim("  Nothing marked. `bonfire going SOCIETY` marks an event."))
+        click.echo()
+        return
+    in_calendar = sync.wanted(cat, today)
+    found = []  # (sort key, row)
+    for key, hours in cat.going.items():
+        sid, _, year = key.rpartition(":")
+        p = predict_one(cat, sid, int(year))
+        if p is None:
+            found.append(((int(year), date.max.toordinal()), [(year, {"dim": True}), cat.societies[sid].name,
+                                                               going_text(hours), ("no date", {"dim": True})]))
+            continue
+        where = "" if key in in_calendar else ("past" if p.day < today else "not in the calendar")
+        found.append(((p.day.year, p.day.toordinal()), [f"{p.day:%a %d %b %Y}", p.title,
+                      (going_text(hours), {"fg": "green", "bold": True}), (where, {"dim": True})]))
+    rows = [row for _, row in sorted(found, key=lambda f: f[0])]
+    click.echo(heading("Going") + dim(f"  {plural(len(rows), 'event')}, kept private in data/going.toml"))
+    click.echo()
+    click.echo(table(rows, ["Date", "Event", "Hours", ""]))
+    click.echo()
+
+
+@cli.command("going", examples=[("bonfire going seaford", "its next night, 18:00 to 22:30"),
+                                 ("bonfire going lewes 2027 --from 17:00 --to 23:30", "your own hours"),
+                                 ("bonfire going seaford 2027 --remove", "not going after all"),
+                                 ("bonfire going", "what you've marked")])
+@click.argument("society", required=False)
+@click.argument("year", type=int, required=False)
+@click.option("--from", "begin", default="18:00", callback=_time, metavar="TIME",
+              help="When you'll be there from. Default: 18:00.")
+@click.option("--to", "finish", default="22:30", callback=_time, metavar="TIME",
+              help="When you'll leave. Default: 22:30; an earlier time means after midnight.")
+@click.option("--remove", is_flag=True, help="Take the mark off: the event goes back to all-day.")
+def going_cmd(society: str | None, year: int | None, begin: time, finish: time, remove: bool) -> None:
+    """Mark an event you're going to: it becomes a timed event that evening.
+
+    SOCIETY is its ID, as `bonfire list` shows. YEAR defaults to the
+    society's next event in the calendar. Marking again replaces the hours.
+    Kept private in data/going.toml, never committed. With no SOCIETY, lists
+    what's marked. Then run `bonfire sync`."""
+    cat = catalogue()
+    today = date.today()
+    if society is None:
+        going_list(cat, today)
+        return
+    sid = research.resolve_id(cat, society)
+    s = cat.societies[sid]
+    if s.kind == "visiting":
+        raise click.ClickException(f"{s.name} has {NO_EVENT}, so there is nothing to go to.")
+    year = year or next_year_for(cat, sid, today)
+    key = f"{sid}:{year}"
+    marks = dict(cat.going)
+    if remove:
+        if key not in marks:
+            raise click.ClickException(f"{s.name} {year} isn't marked as going.")
+        del marks[key]
+    else:
+        marks[key] = (begin, finish)
+    research.write_going(config.going_file(), marks)
+    cat = catalogue()
+    p = predict_one(cat, sid, year)
+    when = f"{p.day:%a %d %b %Y}" if p else str(year)
+    if remove:
+        click.echo(click.style("Not going: ", fg="yellow") + f"{s.name}, {when}" + dim("  (back to all-day)"))
+    else:
+        click.echo(click.style("Going: ", fg="green") + f"{p.title if p else s.name}, {when}, "
+                   + click.style(going_text((begin, finish)), bold=True) + dim("  (kept private in data/going.toml)"))
+        if p is None:
+            click.secho(f"  {s.name} has no date for {year} yet, so there's nothing in the calendar to time.",
+                        fg="yellow")
+        elif key not in sync.wanted(cat, today):
+            click.secho("  That event isn't in the calendar's range, so the calendar won't show it.", fg="yellow")
+    click.echo(dim("Run `bonfire sync` to update the calendar."))

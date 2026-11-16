@@ -2,7 +2,7 @@
 import difflib
 import json
 import shutil
-from datetime import date
+from datetime import date, time
 from pathlib import Path
 
 import click
@@ -26,6 +26,27 @@ def append_confirmed(path: Path, society_id: str, day: date, source: str, url: s
     lines.append(f"checked = {checked.isoformat()}")
     with path.open("a", encoding="utf-8") as f:
         f.write("\n".join(lines) + "\n")
+
+
+GOING_HEADER = "# Events you're going to, with your hours. Private: data/ is never committed.\n"
+
+
+def write_going(path: Path, marks: dict[str, tuple[time, time]]) -> None:
+    """Rewrite data/going.toml from the marks, soonest year first."""
+    def order(key: str) -> tuple[int, str]:
+        sid, _, year = key.rpartition(":")
+        return int(year), sid
+
+    lines = [GOING_HEADER]
+    for key in sorted(marks, key=order):
+        sid, _, year = key.rpartition(":")
+        begin, finish = marks[key]
+        lines += ["[[going]]", f"society = {_toml_string(sid)}", f"year = {year}",
+                  f'from = "{begin:%H:%M}"', f'to = "{finish:%H:%M}"', ""]
+    path.parent.mkdir(parents=True, exist_ok=True)
+    tmp = path.with_suffix(".toml.tmp")
+    tmp.write_text("\n".join(lines), encoding="utf-8")
+    tmp.replace(path)
 
 
 def evidence_dir(data_dir: Path, society_id: str) -> Path:

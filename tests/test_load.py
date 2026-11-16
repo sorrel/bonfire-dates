@@ -208,3 +208,43 @@ known = [ { date = 2030-10-26, source = "society" } ]
 """
     with pytest.raises(DataError, match="must come before"):
         load(write(tmp_path, text), None)
+
+
+GOING = """
+[[going]]
+society = "newick"
+year = 2030
+from = "18:00"
+to = "22:30"
+"""
+
+
+def test_going_entry_loads(tmp_path):
+    cat = load(write(tmp_path, TWO), None, going_path=write(tmp_path, GOING, "going.toml"))
+    assert cat.going == {"newick:2030": (time(18, 0), time(22, 30))}
+
+
+def test_going_missing_file_is_no_marks(tmp_path):
+    assert load(write(tmp_path, TWO), None, going_path=tmp_path / "going.toml").going == {}
+
+
+def test_going_problems_collected(tmp_path):
+    bad = """
+[[going]]
+society = "nobody"
+year = 2030
+from = "18:00"
+to = "22:30"
+
+[[going]]
+society = "newick"
+year = "soon"
+from = "late"
+to = "22:30"
+"""
+    with pytest.raises(DataError) as e:
+        load(write(tmp_path, TWO), None, going_path=write(tmp_path, bad, "going.toml"))
+    text = "\n".join(e.value.problems)
+    assert "unknown society 'nobody'" in text
+    assert "year must be" in text
+    assert "from must be a time" in text

@@ -202,9 +202,43 @@ def problems(cat: Catalogue, fname: str = "societies.toml") -> list[str]:
     return out
 
 
-def load(societies_path: Path, confirmed_path: Path | None, local_path: Path | None = None) -> Catalogue:
+GOING_KEYS = {"society", "year", "from", "to"}
+
+
+def _going(path: Path, societies: dict[str, Society], out: list[str]) -> dict[str, tuple[time, time]]:
+    """The events the user is going to, keyed "id:year", each with its hours."""
+    marks: dict[str, tuple[time, time]] = {}
+    entries = _read(path).get("going", [])
+    for i, entry in enumerate(entries if isinstance(entries, list) else []):
+        where = f"{path.name}: entry #{i + 1}"
+        if not isinstance(entry, dict):
+            out.append(f"{where}: each entry must be a [[going]] table")
+            continue
+        for k in sorted(set(entry) - GOING_KEYS):
+            out.append(f"{where}: unknown key {k!r}")
+        sid, year = entry.get("society"), entry.get("year")
+        hours = []
+        for k in ("from", "to"):
+            try:
+                hours.append(time.fromisoformat(entry.get(k)))
+            except (TypeError, ValueError):
+                out.append(f"{where}: {k} must be a time like \"18:00\"")
+        if sid not in societies:
+            out.append(f"{where}: unknown society {sid!r}")
+        elif societies[sid].kind == "visiting":
+            out.append(f"{where}: {sid} has no event of its own to go to")
+        elif not (_is_int(year) and 1900 <= year <= 2200):
+            out.append(f"{where}: year must be a year like 2027")
+        elif len(hours) == 2:
+            marks[f"{sid}:{year}"] = (hours[0], hours[1])
+    return marks
+
+
+def load(societies_path: Path, confirmed_path: Path | None, local_path: Path | None = None,
+         going_path: Path | None = None) -> Catalogue:
     """The public societies file, plus dates from confirmed.toml (public) and, if
-    given, a private file of dates known first-hand (gitignored data/known.toml)."""
+    given, a private file of dates known first-hand (gitignored data/known.toml)
+    and the private list of events the user is going to (data/going.toml)."""
     raw = _read(societies_path)
     out: list[str] = []
     defaults = raw.pop("defaults", {})
@@ -226,7 +260,8 @@ def load(societies_path: Path, confirmed_path: Path | None, local_path: Path | N
             if k := _known(entry, where, out):
                 s = societies[sid]
                 societies[sid] = replace(s, known=(*s.known, k))
-    cat = Catalogue(societies, badge)
+    going = _going(going_path, societies, out) if going_path and going_path.exists() else {}
+    cat = Catalogue(societies, badge, going)
     out += problems(cat, societies_path.name)
     if out:
         raise DataError(out)

@@ -392,3 +392,23 @@ def test_nothing_is_wanted_beyond_the_horizon():
 def test_the_horizon_reaches_into_the_year_after_next():
     want = sync.wanted(CAT, date(2027, 6, 1))  # horizon 1 Dec 2028
     assert "uckfield:2028" in want and "lewes:2028" in want
+
+
+def test_update_note_says_when_going_changes_the_hours(tmp_path):
+    from dataclasses import replace
+    from datetime import time
+    cal = FakeCalendar()
+    path = tmp_path / "state.json"
+    sync.run(CAT, cal, path, TODAY, dry_run=False)
+    going = replace(CAT, going={"seaford:2027": (time(18, 0), time(22, 30))})
+    item = next(i for i in sync.run(going, cal, path, TODAY, dry_run=True).items if i.key == "seaford:2027")
+    assert item.note == "now 18:00–22:30"
+    state = store.load(path)
+    for e in state.events.values():
+        e.pop("hours", None)  # as written before going was recorded: all made all-day or by the society's start
+    store.save(state, path, TODAY)
+    item = next(i for i in sync.run(going, cal, path, TODAY, dry_run=True).items if i.key == "seaford:2027")
+    assert item.note == "now 18:00–22:30"
+    sync.run(going, cal, path, TODAY, dry_run=False)
+    item = next(i for i in sync.run(CAT, cal, path, TODAY, dry_run=True).items if i.key == "seaford:2027")
+    assert item.note == "back to all-day"
