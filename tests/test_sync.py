@@ -132,6 +132,7 @@ def test_stale_keys_sharing_a_wanted_uid_never_remove_it(tmp_path):
 
 def test_two_stale_keys_sharing_a_uid_remove_once(tmp_path):
     cal = FakeCalendar()
+    cal.read_error = "unreadable"  # the record alone, as when the calendar can't be read back
     path = tmp_path / "state.json"
     store.save(store.State({"a:2027": {"uid": "u", "day": "2027-10-01", "hash": "x"},
                             "b:2027": {"uid": "u", "day": "2027-10-01", "hash": "x"}}), path, TODAY)
@@ -233,7 +234,8 @@ def test_cli_sync_counts_only_events_actually_held_and_no_trailing_spaces(tmp_pa
 
 def test_up_to_date_says_the_count_once(tmp_path, monkeypatch):
     from bonfire_dates import cli
-    monkeypatch.setattr(cli, "make_calendar", lambda: FakeCalendar())
+    cal = FakeCalendar()
+    monkeypatch.setattr(cli, "make_calendar", lambda: cal)
     monkeypatch.setenv("BONFIRE_DATA_DIR", str(tmp_path))
     CliRunner().invoke(cli.cli, ["sync"])
     out = CliRunner().invoke(cli.cli, ["sync"]).output
@@ -272,3 +274,100 @@ def test_update_note_says_what_it_can(tmp_path):
     store.save(state, path, TODAY)
     item = next(i for i in sync.run(noted, cal, path, TODAY, dry_run=True).items if i.key == "seaford:2027")
     assert item.note == "title or notes changed"
+
+
+# --- Reading the calendar back -----------------------------------------------
+
+def synced(tmp_path):
+    cal = FakeCalendar()
+    path = tmp_path / "state.json"
+    sync.run(CAT, cal, path, TODAY, dry_run=False)
+    cal.calls.clear()
+    return cal, path
+
+
+def uid_of(cal: FakeCalendar, key: str) -> str:
+    return next(u for u, p in cal.events.items() if p.key == key)
+
+
+def test_event_deleted_by_hand_is_restored(tmp_path):
+    cal, path = synced(tmp_path)
+    del cal.events[uid_of(cal, "firle:2027")]
+    result = sync.run(CAT, cal, path, TODAY, dry_run=False)
+    item = next(i for i in result.items if i.key == "firle:2027")
+    assert item.action == "restore" and item.error is None
+    assert "firle:2027" in keys(cal)
+    assert store.load(path).events["firle:2027"]["uid"] == uid_of(cal, "firle:2027")
+
+
+def test_duplicate_is_removed_keeping_the_recorded_one(tmp_path):
+    cal, path = synced(tmp_path)
+    kept = uid_of(cal, "firle:2027")
+    cal.events["copy"] = cal.events[kept]
+    result = sync.run(CAT, cal, path, TODAY, dry_run=False)
+    item = next(i for i in result.items if i.key == "firle:2027")
+    assert item.action == "remove" and item.note == "duplicate"
+    assert "copy" not in cal.events and kept in cal.events
+
+
+def test_lost_record_adopts_events_instead_of_duplicating(tmp_path):
+    cal, path = synced(tmp_path)
+    before = len(cal.events)
+    path.unlink()
+    result = sync.run(CAT, cal, path, TODAY, dry_run=False)
+    assert len(cal.events) == before
+    assert not [c for c in cal.calls if c[0] == "remove"]
+    assert {i.action for i in result.items} <= {"update"}
+    assert set(store.load(path).events) >= keys(cal)
+
+
+def test_stray_of_ours_no_longer_wanted_is_removed(tmp_path):
+    cal, path = synced(tmp_path)
+    state = store.load(path)
+    del state.events["seaford:2027"]  # the record forgot it
+    store.save(state, path, TODAY)
+    result = sync.run(with_society(CAT, "seaford", status="unknown"), cal, path, TODAY, dry_run=False)
+    assert "seaford:2027" not in keys(cal)
+    assert any(i.key == "seaford:2027" and i.action == "remove" for i in result.items)
+
+
+def test_event_without_our_marker_is_left_alone_and_listed(tmp_path):
+    cal, path = synced(tmp_path)
+    cal.foreign["mine"] = (date(2026, 12, 1), "Torch-making evening")
+    result = sync.run(CAT, cal, path, TODAY, dry_run=False)
+    assert result.items == [] and cal.calls == []
+    assert [(f.day, f.title) for f in result.foreign] == [(date(2026, 12, 1), "Torch-making evening")]
+
+
+def test_dry_run_reports_repairs_but_changes_nothing(tmp_path):
+    cal, path = synced(tmp_path)
+    del cal.events[uid_of(cal, "firle:2027")]
+    saved = path.read_text()
+    result = sync.run(CAT, cal, path, TODAY, dry_run=True)
+    assert [i.action for i in result.items] == ["restore"]
+    assert cal.calls == [] and path.read_text() == saved
+
+
+def test_unreadable_calendar_falls_back_to_the_record(tmp_path):
+    cal, path = synced(tmp_path)
+    cal.read_error = "no full calendar access"
+    del cal.events[uid_of(cal, "firle:2027")]
+    result = sync.run(CAT, cal, path, TODAY, dry_run=False)
+    assert result.read_error == "no full calendar access"
+    assert result.items == []  # nothing known to be wrong, so nothing done
+
+
+def test_cli_reports_restored_duplicate_and_left_alone(tmp_path, monkeypatch):
+    from bonfire_dates import cli
+    cal = FakeCalendar()
+    monkeypatch.setattr(cli, "make_calendar", lambda: cal)
+    monkeypatch.setenv("BONFIRE_DATA_DIR", str(tmp_path))
+    CliRunner().invoke(cli.cli, ["sync"])
+    kept = uid_of(cal, "lewes:2027")
+    cal.events["copy"] = cal.events[kept]
+    del cal.events[uid_of(cal, "firle:2027")]
+    cal.foreign["mine"] = (date(2027, 1, 9), "Torch-making evening")
+    out = CliRunner().invoke(cli.cli, ["sync"]).output
+    assert "restored" in out and "duplicate" in out
+    assert "1 restored" in out and "1 removed" in out
+    assert "Left alone" in out and "Torch-making evening" in out

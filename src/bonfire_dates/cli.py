@@ -44,9 +44,11 @@ def sync_cmd(dry_run: bool) -> None:
     """Bring the Bonfire calendar in line with the predictions.
 
     Covers the rest of this year and all of next; once Lewes night has passed,
-    this year keeps only known dates. Lists each event added, moved, updated or
-    removed. Past events are never touched, and only the Bonfire calendar is
-    ever changed."""
+    this year keeps only known dates. The calendar is read back first: an
+    event deleted by hand is restored, a duplicate removed, and events this
+    tool didn't make are listed but left alone. Lists each event added,
+    restored, moved, updated or removed. Past events are never touched, and
+    only the Bonfire calendar is ever changed."""
     cat = catalogue()
     today = date.today()
     state_path = config.data_dir() / "state.json"
@@ -54,20 +56,21 @@ def sync_cmd(dry_run: bool) -> None:
     if not dry_run and (problem := cal.check_ready()):
         click.secho(problem, fg="yellow")
         raise SystemExit(1)
-    todo = sync.plan(cat, store.load(state_path), today)
-    count = len(todo.upserts) + len(todo.removals)
     click.echo()
-    if count and not dry_run:
+
+    def started(count: int) -> None:
         click.echo(heading(config.CALENDAR_NAME + " calendar") + dim(f"  writing {plural(count, 'change')}…"))
-    result = sync.run(cat, cal, state_path, today, dry_run)
+
+    result = sync.run(cat, cal, state_path, today, dry_run, on_start=started)
     sync_report(result, today, dry_run)
     if result.failed:
         raise SystemExit(1)
 
 
-ACTIONS = {"add": ("+ added", "green"), "move": ("→ moved", "cyan"), "update": ("~ updated", "blue"),
+ACTIONS = {"add": ("+ added", "green"), "restore": ("↺ restored", "green"), "move": ("→ moved", "cyan"),
+           "update": ("~ updated", "blue"),
            "remove": ("− removed", "yellow")}
-DRY = {"add": "+ add", "move": "→ move", "update": "~ update", "remove": "− remove"}
+DRY = {"add": "+ add", "restore": "↺ restore", "move": "→ move", "update": "~ update", "remove": "− remove"}
 
 
 def plural(n: int, word: str) -> str:
@@ -94,17 +97,18 @@ def sync_report(result: sync.SyncResult, today: date, dry_run: bool) -> None:
         click.echo(table(rows, ["Change", "Date", "Event", "Sure", ""]))
         click.echo()
         tally = [(sum(1 for i in result.items if i.action == a and not i.error), word)
-                 for a, word in (("add", "added"), ("move", "moved"), ("update", "updated"),
+                 for a, word in (("add", "added"), ("restore", "restored"), ("move", "moved"),
+                                 ("update", "updated"),
                                  ("remove", "removed"))]
         tally += [(len(result.failed), "failed"), (result.unchanged, "unchanged")]
-        colours = {"added": "green", "moved": "cyan", "updated": "blue", "removed": "yellow", "failed": "red"}
+        colours = {"added": "green", "restored": "green", "moved": "cyan", "updated": "blue", "removed": "yellow", "failed": "red"}
         parts = [click.style(f"{n} {w}", fg=colours.get(w), bold=True) if n and w in colours else dim(f"{n} {w}")
                  for n, w in tally]
         click.echo("  " + dim(" · ").join(parts) + (dim("  (nothing written)") if dry_run else ""))
     if result.events:
         first, last = result.events[0], result.events[-1]
         verb = "would hold" if dry_run and result.items else "holds"
-        missing = sum(1 for i in result.items if i.error and i.action == "add")
+        missing = sum(1 for i in result.items if i.error and i.action in ("add", "restore"))
         held = f"{len(result.events) - missing} of {len(result.events)} events" if missing else \
             plural(len(result.events), "event")
         click.echo(dim(f"  The calendar {verb} {held}, "
@@ -113,6 +117,15 @@ def sync_report(result: sync.SyncResult, today: date, dry_run: bool) -> None:
         when = "today" if days == 0 else "tomorrow" if days == 1 else f"in {days} days"
         click.echo("  " + click.style("Next: ", bold=True) + f"{first.day:%a %d %b}  {first.title}  "
                    + dim(when))
+    if result.foreign:
+        click.echo()
+        click.echo("  " + click.style("Left alone", bold=True)
+                   + dim(f"  {plural(len(result.foreign), 'event')} not made by bonfire, never changed"))
+        for f in result.foreign:
+            click.echo(f"    {f.day:%a %d %b %Y}  {f.title}")
+    if result.read_error:
+        click.secho(f"  Couldn't read the calendar back ({result.read_error}), so deleted or "
+                    "duplicate events weren't checked.", fg="yellow")
     if result.failed:
         click.secho("  Failed writes are tried again on the next sync.", fg="yellow")
     click.echo()

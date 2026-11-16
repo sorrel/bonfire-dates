@@ -73,3 +73,26 @@ def test_all_day_end_equals_start_so_eventkit_sets_one_day():
     assert p["end"] == p["start"]
     timed = calendar_app.payload(Change(None, P["glynde-parade"]))
     assert timed["end"] - timed["start"] == 3 * 3600 * 1000
+
+
+def test_mac_read_lists_events_with_their_keys(tmp_path):
+    from datetime import date, datetime
+    start = int(datetime(2027, 10, 23).timestamp())
+    seen = tmp_path / "seen.json"
+    cal = stand_in(tmp_path, f"open({str(seen)!r}, 'w').write(json.dumps(req))\n"
+                             "print(json.dumps({'ok': True, 'uid': '', 'events': ["
+                             f"{{'uid': 'a', 'title': 'Firle', 'start': {start}, 'mark': 'bonfire-dates:firle%3A2027'}},"
+                             f"{{'uid': 'b', 'title': 'Mine', 'start': {start}, 'mark': ''}}]}}))\n")
+    found = cal.read(date(2026, 11, 15), date(2028, 1, 1))
+    assert [(f.uid, f.key, f.day, f.title) for f in found] == [
+        ("a", "firle:2027", date(2027, 10, 23), "Firle"), ("b", None, date(2027, 10, 23), "Mine")]
+    op = json.loads(seen.read_text())["ops"][0]
+    assert op["op"] == "list" and op["from"] == int(datetime(2026, 11, 15).timestamp())
+
+
+def test_mac_read_failure_raises(tmp_path):
+    from datetime import date
+    import pytest
+    cal = stand_in(tmp_path, "print(json.dumps({'ok': False, 'error': 'missing'}))\n")
+    with pytest.raises(CalendarError, match="Calendar.app"):
+        cal.read(date(2026, 11, 15), date(2028, 1, 1))
